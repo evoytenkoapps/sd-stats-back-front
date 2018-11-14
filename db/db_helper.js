@@ -10,9 +10,9 @@ class DbHelper {
         let query;
         switch (period) {
             case 'week':
-                query = `SELECT date_trunc('week', time_create::date) AS date, product, 
+                query = `SELECT date_trunc('week', time_create)::timestamp::date || '' AS date, product,
             COUNT(id)           
-     FROM ${environment.table_calls}
+     FROM ${environment.table_calls} WHERE product is not null
      GROUP BY date, product
      ORDER BY date;`
                 break;
