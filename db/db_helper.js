@@ -7,17 +7,18 @@ let environment = require('../environment.js');
 class DbHelper {
 
     async getProducts(period) {
-        let query;
-        switch (period) {
-            case 'week':
-                query = `SELECT date_trunc('week', time_create)::timestamp::date || '' AS date, product,
-            COUNT(id)           
-     FROM ${environment.table_calls} WHERE product is not null
-     GROUP BY date, product
-     ORDER BY date;`
-                break;
+        const periods = ['day', 'week', 'month', 'year'];
+        if (!periods.find(el => period === el)) {
+            throw Error('Wrong period :' + period);
         }
 
+        const query =
+            `
+        SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, product,
+        COUNT(id) FROM ${environment.table_calls} WHERE product is not null 
+        GROUP BY date, product 
+        ORDER BY date;
+ `
         const result = await this.request(query);
         return result;
     }

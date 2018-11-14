@@ -1,3 +1,5 @@
+'use strict'
+
 const express = require('express');
 const url = require('url');
 
@@ -27,7 +29,7 @@ async function getProduct(req, res, next) {
         };
 
         const buff = groupBy(data, 'date');
-        for (key in buff) {
+        for (const key in buff) {
             const obj = {};
             buff[key].forEach(element => {
                 obj[element.product] = element.count;
