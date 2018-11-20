@@ -12,8 +12,10 @@ if (currentEnv === 'prod') {
     environment.db_user = 'postgres';
     environment.db_dbname = 'postgres';
     environment.table_calls = 'sd';
+    environment.table_holidays = 'holidays';
     environment.sd_server = 'sd/j_security_check';
 }
+
 if (currentEnv === 'dev') {
     // dev
     environment.host = '192.168.27.5'; //'localhost';
@@ -24,6 +26,7 @@ if (currentEnv === 'dev') {
     environment.db_user = 'postgres';
     environment.db_dbname = 'test';
     environment.table_calls = 'sd';
+    environment.table_holidays = 'holidays';
     environment.sd_server = 'sd/j_security_check';
 }
 

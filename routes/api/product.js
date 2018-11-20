@@ -15,11 +15,13 @@ router.route('/')
 async function getProduct(req, res, next) {
     const period = req.query.period;
     const mode = req.query.mode;
+    const day = req.query.day;
     let body;
     try {
         const result = [];
-        const data = [] = await db_helper.getProducts(period, mode);
+        const data = [] = await db_helper.getProducts(period, mode, day);
 
+        // Делаем группировку по продукту
         var groupBy = function (arr, key) {
             return arr.reduce(function (groups, item) {
                 const val = item[key];
@@ -38,11 +40,7 @@ async function getProduct(req, res, next) {
             obj.date = key;
             result.push(obj);
         }
-
-        console.log(result);
-
         body = requester.createBody(true, result, null);
-
     }
     catch (error) {
         body = requester.getDbError(error);
