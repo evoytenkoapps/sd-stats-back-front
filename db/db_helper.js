@@ -26,14 +26,6 @@ class DbHelper {
     async request(query, data) {
         console.log(query);
         return await db.any(query, data);
-        // try {
-        //     console.log(query);
-        //     return await db.any(query, data);
-        // } catch (error) {
-        //     console.error('Ошибка в запросе:', query, error);
-        //     return error;
-        // }
-
     }
 };
 

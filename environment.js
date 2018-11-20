@@ -11,7 +11,8 @@ if (currentEnv === 'prod') {
     environment.db_password = 'Qwe12345';
     environment.db_user = 'postgres';
     environment.db_dbname = 'postgres';
-    environment.table_calls = 'sd_calls';
+    environment.table_calls = 'sd';
+    environment.sd_server = 'sd/j_security_check';
 }
 if (currentEnv === 'dev') {
     // dev
@@ -21,8 +22,9 @@ if (currentEnv === 'dev') {
     environment.db_port = '5432';
     environment.db_password = 'Qwe12345';
     environment.db_user = 'postgres';
-    environment.db_dbname = 'postgres';
-    environment.table_calls = 'sd_calls';
+    environment.db_dbname = 'test';
+    environment.table_calls = 'sd';
+    environment.sd_server = 'sd/j_security_check';
 }
 
 module.exports = environment;
