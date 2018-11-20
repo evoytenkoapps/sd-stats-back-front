@@ -14,10 +14,11 @@ router.route('/')
 
 async function getProduct(req, res, next) {
     const period = req.query.period;
+    const mode = req.query.mode;
     let body;
     try {
         const result = [];
-        const data = [] = await db_helper.getProducts(period);
+        const data = [] = await db_helper.getProducts(period, mode);
 
         var groupBy = function (arr, key) {
             return arr.reduce(function (groups, item) {
