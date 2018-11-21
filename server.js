@@ -15,6 +15,8 @@ app.use(bodyParser.json({
 
 app.use('/api', api);
 
+app.use(express.static('./html'));
+
 app.get(/./, (req, res) => {
     console.log(req.path);
     res.sendFile(__dirname + '/html/index.html')
