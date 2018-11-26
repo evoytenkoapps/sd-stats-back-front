@@ -5,26 +5,22 @@ const url = require('url');
 
 const db_helper = require('../../db/db_helper');
 const requester = require('../requester');
-const groupby = require('../../helper/groupby');
 
 const router = express.Router();
 
 router.route('/')
-    .get(getProduct);
+    .get(getProducts);
 
 
-async function getProduct(req, res, next) {
-    const product = req.query.product;
+async function getProducts(req, res, next) {
     const period = req.query.period;
     const mode = req.query.mode;
     const day = req.query.day;
     const callscount = req.query.callscount;
     let body;
     try {
-        const result = { data: [], attr: [] };
-        result.attr = await db_helper.getSubcategoriesByProduct(product);
-        const data = [] = await db_helper.getProduct(product, period, mode, day, callscount);
-
+        const result = [];
+        const data = [] = await db_helper.getProducts(period, mode, day, callscount);
         // Делаем группировку по продукту
         var groupBy = function (arr, key) {
             return arr.reduce(function (groups, item) {
@@ -39,13 +35,12 @@ async function getProduct(req, res, next) {
         for (const key in buff) {
             const obj = {};
             buff[key].forEach(element => {
-                obj[element.subcategory] = element.count;
+                obj[element.product] = element.count;
             });
             obj.date = key;
-            result.data.push(obj);
+            result.push(obj);
         }
         body = requester.createBody(true, result, null);
-
     }
     catch (error) {
         body = requester.getDbError(error);

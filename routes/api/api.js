@@ -7,7 +7,7 @@ router.use(function timeLog(err, req, res, next) {
     next();
 });
 
+router.use('/products', require('./products'));
 router.use('/product', require('./product'));
-
 
 module.exports = router;
