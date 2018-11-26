@@ -49,14 +49,14 @@ class DbHelper {
         ORDER BY date; 
         `;
 
-        let data = await this.request(query_data);
-        return data;
-    }
-
-    async getSubcategoriesByProduct(product) {
         const query_subcategory = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} WHERE product = '${product}';`
-        const subcategory = await this.request(query_subcategory);
-        return subcategory;
+     
+        const [res1, res2] = await Promise.all([
+            this.request(query_data),
+            this.request(query_subcategory),
+        ]);
+
+        return [res1, res2];
     }
 
     async getProducts(period, mode, day, cday) {

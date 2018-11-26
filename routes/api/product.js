@@ -22,9 +22,8 @@ async function getProduct(req, res, next) {
     let body;
     try {
         const result = { data: [], attr: [] };
-        result.attr = await db_helper.getSubcategoriesByProduct(product);
         const data = [] = await db_helper.getProduct(product, period, mode, day, callscount);
-
+        result.attr = data[1];
         // Делаем группировку по продукту
         var groupBy = function (arr, key) {
             return arr.reduce(function (groups, item) {
@@ -35,7 +34,7 @@ async function getProduct(req, res, next) {
             }, {});
         };
 
-        const buff = groupBy(data, 'date');
+        const buff = groupBy(data[0], 'date');
         for (const key in buff) {
             const obj = {};
             buff[key].forEach(element => {
