@@ -16,10 +16,11 @@ async function getProduct(req, res, next) {
     const period = req.query.period;
     const mode = req.query.mode;
     const day = req.query.day;
+    const callscount = req.query.callscount;
     let body;
     try {
         const result = [];
-        const data = [] = await db_helper.getProducts(period, mode, day);
+        const data = [] = await db_helper.getProducts(period, mode, day, callscount);
 
         // Делаем группировку по продукту
         var groupBy = function (arr, key) {

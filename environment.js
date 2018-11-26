@@ -25,7 +25,7 @@ if (currentEnv === 'dev') {
     environment.db_password = 'Qwe12345';
     environment.db_user = 'postgres';
     environment.db_dbname = 'test';
-    environment.table_calls = 'sd';
+    environment.table_calls = 'test_sd';
     environment.table_holidays = 'holidays';
     environment.sd_server = 'sd/j_security_check';
 }
