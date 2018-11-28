@@ -50,7 +50,7 @@ class DbHelper {
         `;
 
         const query_subcategory = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} WHERE product = '${product}';`
-     
+
         const [res1, res2] = await Promise.all([
             this.request(query_data),
             this.request(query_subcategory),
@@ -92,6 +92,52 @@ class DbHelper {
         `
         const result = await this.request(query);
         return result;
+    }
+
+    async getSubcategories(product) {
+        const query = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} WHERE product = '${product}';`
+        const result = await this.request(query);
+        return result;
+    }
+
+    async getPosition(product, subcategory, period, mode, day, cday) {
+        if (!Object.values(products).find(el => el === product)) {
+            throw Error('Wrong product :' + product);
+        }
+
+        if (!Object.values(periods).find(el => el === period)) {
+            throw Error('Wrong period :' + period);
+        }
+
+        if (!Object.values(modes).find(el => el === mode)) {
+            throw Error('Wrong mode :' + mode);
+        };
+
+        if (!Object.values(workingdays).find(el => el === day)) {
+            throw Error('Wrong day :' + day);
+        };
+
+        if (!Object.values(callsday).find(el =>
+            el === cday)) {
+            throw Error('Wrong callsday :' + cday);
+        };
+
+
+        const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
+        const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
+
+        const query =
+            `    
+        SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, subcategory,
+        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        AND product = '${product}'
+        AND subcategory = '${subcategory}'
+        GROUP BY date, subcategory 
+        ORDER BY date;`
+
+        const result = await this.request(query);
+        return result;
+
     }
 
     async request(query, data) {

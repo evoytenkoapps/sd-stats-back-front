@@ -13,6 +13,7 @@ router.route('/')
     .get(getProduct);
 
 
+
 async function getProduct(req, res, next) {
     const product = req.query.product;
     const period = req.query.period;
@@ -50,7 +51,6 @@ async function getProduct(req, res, next) {
         body = requester.getDbError(error);
     }
     res.json(body);
-}
-
+};
 
 module.exports = router;

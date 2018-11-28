@@ -9,5 +9,7 @@ router.use(function timeLog(err, req, res, next) {
 
 router.use('/products', require('./products'));
 router.use('/product', require('./product'));
+router.use('/subcategories', require('./subcategories'));
+router.use('/position', require('./position'));
 
 module.exports = router;
