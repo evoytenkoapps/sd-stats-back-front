@@ -148,6 +148,31 @@ class DbHelper {
     }
 
 
+    async getGrowPosition(startDate, endDate) {
+        const query =
+            `
+WITH val AS (
+    SELECT  '${startDate}'::DATE startDate, '${endDate}'::DATE endDate
+    )
+    SELECT position1, total1, count1::numeric, total2::numeric, count2::numeric, round((count2::numeric/count1::numeric)-1,2) FROM ( SELECT position position1, count(*) total1, round( count(*)::numeric/count(DISTINCT(time_create::DATE))::numeric,2 )::numeric as count1
+      FROM ${environment.table_calls} CROSS JOIN val
+           LEFT JOIN ${environment.table_holidays} h ON h.date = DATE_TRUNC('DAY', time_create)  
+     WHERE time_create >= DATE_TRUNC('WEEK', startDate)
+       AND time_create  < DATE_TRUNC('WEEK', startDate) + INTERVAL '1 WEEK'
+       AND h.date IS NULL
+       GROUP BY position ) t_start 
+       INNER JOIN
+       ( SELECT position position2, count(*) total2, round( count(*)::numeric/count(DISTINCT(time_create::DATE))::numeric,2 ) as count2
+      FROM ${environment.table_calls} CROSS JOIN val
+           LEFT JOIN ${environment.table_holidays} h ON h.date = DATE_TRUNC('DAY', time_create)  
+     WHERE time_create >= DATE_TRUNC('WEEK', endDate)
+       AND time_create  < DATE_TRUNC('WEEK', endDate) + INTERVAL '1 WEEK'
+       AND h.date IS NULL
+       GROUP BY position ) t_end ON t_start.position1=t_end.position2  ORDER BY round DESC;
+`
+        return await this.request(query);
+    }
+
 
     async request(query, data) {
         console.log(query);
