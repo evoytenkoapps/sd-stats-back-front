@@ -7,6 +7,7 @@ const db_helper = require('../../db/db_helper');
 const requester = require('../requester');
 
 const router = express.Router();
+const groupby = require('../../helper/groupby');
 
 router.route('/')
     .get(getPositions);
@@ -23,12 +24,13 @@ async function getPositions(req, res, next) {
     const callscount = req.query.callscount;
     let body;
     try {
-        const result = []
+        let result = [];
         const data = [] = await db_helper.getPosition(product, subcategory, period, mode, day, callscount);
         data.forEach(element => {
             result.push(element.subcategory)
         });
         // Делаем группировку по продукту
+        result = groupby.parse(data, 'subcategory', 'date');
         body = requester.createBody(true, result, null);
     }
     catch (error) {

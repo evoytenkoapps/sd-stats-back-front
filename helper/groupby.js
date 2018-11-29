@@ -1,12 +1,12 @@
 class GroupBy {
 
-    parse(data, formatter) {
+    parse(data, attr, formatter) {
         const result = [];
         const buff = this.groupBy(data, formatter);
         for (const key in buff) {
             const obj = {};
             buff[key].forEach(element => {
-                obj[element.product] = element.count;
+                obj[element[attr]] = element.count;
             });
             obj.date = key;
             result.push(obj);
