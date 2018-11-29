@@ -94,6 +94,7 @@ class DbHelper {
         return result;
     }
 
+
     async getSubcategories(product) {
         const query = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} WHERE product = '${product}';`
         const result = await this.request(query);
@@ -126,19 +127,27 @@ class DbHelper {
         const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
         const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
-        const query =
+        const query_data =
             `    
-        SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, subcategory,
+        SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, position,
         ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
         AND product = '${product}'
         AND subcategory = '${subcategory}'
-        GROUP BY date, subcategory 
-        ORDER BY date;`
+        GROUP BY date, position 
+        ORDER BY date;`;
 
-        const result = await this.request(query);
-        return result;
+        const query_positions = `SELECT distinct(position) from ${environment.table_calls} where product = '${product}' AND subcategory = '${subcategory}'`;
+
+        const [res1, res2] = await Promise.all([
+            this.request(query_data),
+            this.request(query_positions)
+        ]);
+
+        return [res1, res2];
 
     }
+
+
 
     async request(query, data) {
         console.log(query);

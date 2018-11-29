@@ -24,13 +24,11 @@ async function getPositions(req, res, next) {
     const callscount = req.query.callscount;
     let body;
     try {
-        let result = [];
+        let result = {};
         const data = [] = await db_helper.getPosition(product, subcategory, period, mode, day, callscount);
-        data.forEach(element => {
-            result.push(element.subcategory)
-        });
         // Делаем группировку по продукту
-        result = groupby.parse(data, 'subcategory', 'date');
+        result.data = groupby.parse(data[0], 'position');
+        result.attr = data[1];
         body = requester.createBody(true, result, null);
     }
     catch (error) {
