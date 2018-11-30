@@ -22,12 +22,13 @@ async function checkId(req, res, next) {
 }
 
 async function getGrowPosition(req, res, next) {
+    const product = req.query.product;
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
     let body;
     try {
         const result = []
-        const data = [] = await db_helper.getGrowPosition(startDate, endDate);
+        const data = [] = await db_helper.getGrowPosition(product, startDate, endDate);
         data.forEach(element => {
             element.total1 = parseInt(element.total1);
             element.count1 = parseFloat(element.count1);

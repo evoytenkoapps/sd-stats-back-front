@@ -79,16 +79,20 @@ class DbHelper {
             throw Error('Wrong callsday :' + cday);
         }
 
-
         const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
         const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
         const query =
             `    
-        SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, product,
+        ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, product,
         ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
         GROUP BY date, product 
-        ORDER BY date; 
+        ORDER BY date ) 
+        UNION ALL 
+        ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, '${products.ALL}',
+        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        GROUP BY date 
+        ORDER BY date );
         `
         const result = await this.request(query);
         return result;
@@ -148,7 +152,14 @@ class DbHelper {
     }
 
 
-    async getGrowPosition(startDate, endDate) {
+    async getGrowPosition(product, startDate, endDate) {
+
+        if (!Object.values(products).find(el => el === product)) {
+            throw Error('Wrong product :' + product);
+        };
+
+        const filter_product = product === products.ALL ? '' : `AND product = '${product}'`;
+
         const query =
             `
 WITH val AS (
@@ -159,7 +170,8 @@ WITH val AS (
            LEFT JOIN ${environment.table_holidays} h ON h.date = DATE_TRUNC('DAY', time_create)  
      WHERE time_create >= DATE_TRUNC('WEEK', startDate)
        AND time_create  < DATE_TRUNC('WEEK', startDate) + INTERVAL '1 WEEK'
-       AND h.date IS NULL
+       AND h.date IS NULL 
+       ${filter_product} 
        GROUP BY position ) t_start 
        INNER JOIN
        ( SELECT position position2, count(*) total2, round( count(*)::numeric/count(DISTINCT(time_create::DATE))::numeric,2 ) as count2
@@ -167,7 +179,8 @@ WITH val AS (
            LEFT JOIN ${environment.table_holidays} h ON h.date = DATE_TRUNC('DAY', time_create)  
      WHERE time_create >= DATE_TRUNC('WEEK', endDate)
        AND time_create  < DATE_TRUNC('WEEK', endDate) + INTERVAL '1 WEEK'
-       AND h.date IS NULL
+       AND h.date IS NULL 
+       ${filter_product} 
        GROUP BY position ) t_end ON t_start.position1=t_end.position2  ORDER BY round DESC;
 `
         return await this.request(query);
