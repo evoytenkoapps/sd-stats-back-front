@@ -54,11 +54,12 @@ async function getTaskContent(req, res, next) {
     const product = req.query.product;
     const mode = req.query.mode;
     const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
 
     let body;
     try {
         const result = [];
-        const data = [] = await db_helper.getTaskContent(product, mode, startDate);
+        const data = [] = await db_helper.getTaskContent(product, mode, startDate, endDate);
         body = requester.createBody(true, data, null);
     }
     catch (error) {

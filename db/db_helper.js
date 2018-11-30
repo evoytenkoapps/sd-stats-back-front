@@ -186,9 +186,9 @@ WITH val AS (
         return await this.request(query);
     }
 
-    async getTaskContent(product, mode, date) {
+    async getTaskContent(product, mode, startDate, endDate) {
         const filter_product = product === products.ALL ? '' : ` AND product = '${product}'`;
-        const query = `SELECT title,description,decision, subcategory, position, result FROM ${environment.table_calls} WHERE time_create::date='${date}' AND mode='${mode}' ${filter_product}`;
+        const query = `SELECT task_id, title,description,decision, subcategory, position, result FROM ${environment.table_calls} WHERE time_create::date>='${startDate}' AND time_create::date<='${endDate}' AND mode='${mode}' ${filter_product}`;
         return await this.request(query);
     }
 
