@@ -18,6 +18,10 @@ async function checkId(req, res, next) {
         case 'growposition':
             getGrowPosition(req, res, next);
             break;
+        case 'taskcontent':
+            getTaskContent(req, res, next);
+            break;
+
     }
 }
 
@@ -37,6 +41,24 @@ async function getGrowPosition(req, res, next) {
             element.round = parseFloat(element.round);
             result.push(element);
         });
+        body = requester.createBody(true, data, null);
+    }
+    catch (error) {
+        body = requester.getDbError(error);
+    }
+    res.json(body);
+}
+
+
+async function getTaskContent(req, res, next) {
+    const product = req.query.product;
+    const mode = req.query.mode;
+    const startDate = req.query.startDate;
+
+    let body;
+    try {
+        const result = [];
+        const data = [] = await db_helper.getTaskContent(product, mode, startDate);
         body = requester.createBody(true, data, null);
     }
     catch (error) {

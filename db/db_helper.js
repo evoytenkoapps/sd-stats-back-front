@@ -186,11 +186,20 @@ WITH val AS (
         return await this.request(query);
     }
 
+    async getTaskContent(product, mode, date) {
+        const filter_product = product === products.ALL ? '' : ` AND product = '${product}'`;
+        const query = `SELECT title,description,decision, subcategory, position, result FROM ${environment.table_calls} WHERE time_create::date='${date}' AND mode='${mode}' ${filter_product}`;
+        return await this.request(query);
+    }
+
 
     async request(query, data) {
         console.log(query);
         return await db.any(query, data);
     }
+
+
+
 };
 
 module.exports = new DbHelper();
