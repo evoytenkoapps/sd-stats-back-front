@@ -13,6 +13,7 @@
     "body-parser": "1.18.3",
     "express": "4.16.0",
     "moment": "2.22.2",
-    "pg-promise": "8.4.6"
+    "pg-promise": "8.4.6",
+    "url-parse": "^1.4.4"
   }
 }

@@ -12,5 +12,6 @@ router.use('/product', require('./product'));
 router.use('/subcategories', require('./subcategories'));
 router.use('/position', require('./position'));
 router.use('/table', require('./table'));
+router.use('/attributes', require('./attributes'));
 
 module.exports = router;

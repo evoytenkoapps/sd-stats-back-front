@@ -12,6 +12,31 @@ const periods = require('../model/periods');
 
 class DbHelper {
 
+    constructor() {
+        this.filters = {
+            filter_product: function (product) {
+                return product === products.ALL ? null : ` product = '${product}'`;
+            },
+            filter_subcategory: function (subcategory) {
+                return subcategory ? ` subcategory='${subcategory}'` : '';
+            }
+        }
+    }
+
+    async getAttrSubcat(product) {
+        const query = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} ${this.filters.filter_product(product) ? 'WHERE ' + this.filters.filter_product(product) : ''}  ORDER BY subcategory`;
+        return await this.request(query);
+    }
+
+    async getAttrPos(product, subcategory) {
+        const query = `SELECT DISTINCT(position) FROM ${environment.table_calls} ${this.filters.filter_product(product) ? 'WHERE ' + this.filters.filter_product(product) + ' AND' : 'WHERE '}  subcategory='${subcategory}' ORDER BY position`;
+        return await this.request(query);
+    }
+
+    async getAttrHard() {
+        const query = `SELECT DISTINCT(hardware) FROM ${environment.table_calls} ORDER BY hardware`;
+        return await this.request(query);
+    }
 
     async getProduct(product, period, mode, day, cday) {
 
@@ -186,9 +211,12 @@ WITH val AS (
         return await this.request(query);
     }
 
-    async getTaskContent(product, mode, startDate, endDate) {
+    async getTaskContent(product, mode, startDate, endDate, subcategory, position, hardware) {
+        const filter_hardware = hardware === undefined ? '' : ` AND hardware = '${hardware}'`;
+        const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
+        const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
         const filter_product = product === products.ALL ? '' : ` AND product = '${product}'`;
-        const query = `SELECT task_id, title,description,decision, subcategory, position, result FROM ${environment.table_calls} WHERE time_create::date>='${startDate}' AND time_create::date<='${endDate}' AND mode='${mode}' ${filter_product}`;
+        const query = `SELECT task_id, title,description,decision, subcategory, position, hardware, result FROM ${environment.table_calls} WHERE time_create::date>='${startDate}' AND time_create::date<='${endDate}' AND mode='${mode}' ${filter_product} ${filter_subcat} ${filter_position} ${filter_hardware}`;
         return await this.request(query);
     }
 
