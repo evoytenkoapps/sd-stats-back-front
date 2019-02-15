@@ -110,12 +110,12 @@ class DbHelper {
         const query =
             `    
         ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, product,
-        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter} AND date_trunc('day', time_create)::timestamp::date < date_trunc('day', now())::timestamp::date
         GROUP BY date, product 
         ORDER BY date ) 
         UNION ALL 
         ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, '${products.ALL}',
-        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter} AND date_trunc('day', time_create)::timestamp::date < date_trunc('day', now())::timestamp::date
         GROUP BY date 
         ORDER BY date );
         `
