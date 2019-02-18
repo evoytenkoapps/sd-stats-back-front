@@ -221,6 +221,41 @@ WITH val AS (
     }
 
 
+    /**
+     *
+     *
+     * @param {*} mode
+     * @param {*} day
+     * @param {*} cday
+     * @param {*} subcategory
+     * @param {*} position
+     * @returns
+     * @memberof DbHelper
+     */
+    async getHardwareData(mode, day, cday, subcategory, position) {
+        const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
+        const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
+        const filter_product = ` AND product = 'SIP'`;
+
+        const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
+        const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
+
+        const query =
+            `    
+        ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, product,
+        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter} AND date_trunc('day', time_create)::timestamp::date < date_trunc('day', now())::timestamp::date
+        GROUP BY date, product 
+        ORDER BY date ) 
+        UNION ALL 
+        ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, '${products.ALL}',
+        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter} AND date_trunc('day', time_create)::timestamp::date < date_trunc('day', now())::timestamp::date
+        GROUP BY date 
+        ORDER BY date );`
+
+        return await this.request(query);
+    }
+
+
     async request(query, data) {
         console.log(query);
         return await db.any(query, data);

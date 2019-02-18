@@ -21,6 +21,9 @@ async function checkId(req, res, next) {
         case 'taskcontent':
             getTaskContent(req, res, next);
             break;
+        case 'hardWareData':
+            getHardwareData(req, res, next);
+            break;
 
     }
 }
@@ -63,6 +66,25 @@ async function getTaskContent(req, res, next) {
     try {
         const result = [];
         const data = [] = await db_helper.getTaskContent(product, mode, startDate, endDate, subcategory, position, hardware);
+        body = requester.createBody(true, data, null);
+    }
+    catch (error) {
+        body = requester.getDbError(error);
+    }
+    res.json(body);
+}
+
+
+async function getHardwareData(req, res, next) {
+    const mode = req.query.mode;
+    const day = req.query.day;
+    const callscount = req.query.callscount;
+    const subcategory = req.query.subcategory;
+    const position = req.query.position;
+
+    let body;
+    try {
+        const data = [] = await db_helper.getHardwareData(mode, day, callscount, subcategory, position);
         body = requester.createBody(true, data, null);
     }
     catch (error) {
