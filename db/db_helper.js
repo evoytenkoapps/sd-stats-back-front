@@ -243,27 +243,46 @@ WITH val AS (
 
         const query =
             `    
-            SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , hardware,
-            ${callsdayFilter}  FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+            -- Поштучно
+            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , hardware,${callsdayFilter}  
+            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
             AND product = 'SIP'
             GROUP BY date ${show_subcategory} , hardware
-            ORDER BY date; 
-        `
+            ORDER BY date)
 
-        return await this.request(query);
-    }
+            UNION ALL
+            -- Все Yealink_all
+            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Yealink_all' as hardware, ${callsdayFilter}  
+            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+            AND product = 'SIP'  AND hardware like '%Yeal%'
+            GROUP BY date ${show_subcategory}
+            ORDER BY date)
 
-    /**
-     * Возвращает список моделей для продукта SIP
-     *
-     * @returns
-     * @memberof DbHelper
-     */
-    async getSipModels() {
-        const query =
-            `    
-           SELECT DISTINCT (hardware) FROM ${environment.table_calls} WHERE product='SIP' ORDER BY hardware; 
+            UNION ALL
+            -- Все Panasonic_all
+            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Panasonic_all' as hardware, ${callsdayFilter}  
+            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+            AND product = 'SIP'  AND hardware like '%Panas%'
+            GROUP BY date ${show_subcategory}
+            ORDER BY date)
+
+            UNION ALL
+            -- Все Grandstream_all
+            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Grandstream_all' as hardware, ${callsdayFilter}  
+            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+            AND product = 'SIP'  AND hardware like '%Grand%'
+            GROUP BY date ${show_subcategory}
+            ORDER BY date)
+
+            UNION ALL
+            -- Все Gigaset_all
+            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Gigaset_all' as hardware, ${callsdayFilter}  
+            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+            AND product = 'SIP'  AND hardware like '%Giga%'
+            GROUP BY date ${show_subcategory}
+            ORDER BY date)
         `
+        
 
         return await this.request(query);
     }

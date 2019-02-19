@@ -88,8 +88,14 @@ async function getHardwareData(req, res, next) {
     try {
         let data = [] = await db_helper.getHardwareData(period, mode, day, callscount, subcategory, position);
         data = groupby.parse(data, 'hardware');
-
-        const models = [] = (await db_helper.getSipModels()).map(el => el.hardware);
+        const models = [];
+        // Формируем уникальный массив моделей
+        data.forEach(el => {
+            for (const property in el) {
+                models.find(e => e === property) ? null : models.push(property);
+            }
+        });
+        models.sort();
         body = requester.createBody(true, { data, models }, null);
     }
     catch (error) {
