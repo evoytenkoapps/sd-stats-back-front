@@ -246,7 +246,7 @@ WITH val AS (
             -- Поштучно
             (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , hardware,${callsdayFilter}  
             FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            AND product = 'SIP'
+            ${filter_product} ${filter_position} ${filter_subcat}
             GROUP BY date ${show_subcategory} , hardware
             ORDER BY date)
 
@@ -254,7 +254,7 @@ WITH val AS (
             -- Все Yealink_all
             (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Yealink_all' as hardware, ${callsdayFilter}  
             FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            AND product = 'SIP'  AND hardware like '%Yeal%'
+            ${filter_product} ${filter_position} ${filter_subcat}  AND hardware like '%Yeal%'
             GROUP BY date ${show_subcategory}
             ORDER BY date)
 
@@ -262,7 +262,7 @@ WITH val AS (
             -- Все Panasonic_all
             (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Panasonic_all' as hardware, ${callsdayFilter}  
             FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            AND product = 'SIP'  AND hardware like '%Panas%'
+            ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Panas%'
             GROUP BY date ${show_subcategory}
             ORDER BY date)
 
@@ -270,7 +270,7 @@ WITH val AS (
             -- Все Grandstream_all
             (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Grandstream_all' as hardware, ${callsdayFilter}  
             FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            AND product = 'SIP'  AND hardware like '%Grand%'
+            ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Grand%'
             GROUP BY date ${show_subcategory}
             ORDER BY date)
 
@@ -278,7 +278,7 @@ WITH val AS (
             -- Все Gigaset_all
             (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Gigaset_all' as hardware, ${callsdayFilter}  
             FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            AND product = 'SIP'  AND hardware like '%Giga%'
+            ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Giga%'
             GROUP BY date ${show_subcategory}
             ORDER BY date)
         `
