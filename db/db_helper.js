@@ -232,25 +232,38 @@ WITH val AS (
      * @returns
      * @memberof DbHelper
      */
-    async getHardwareData(mode, day, cday, subcategory, position) {
+    async getHardwareData(period, mode, day, cday, subcategory, position) {
         const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
         const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
         const filter_product = ` AND product = 'SIP'`;
+        const show_subcategory = subcategory ? ',subcategory' : '';
 
         const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
         const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
         const query =
             `    
-        ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, product,
-        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter} AND date_trunc('day', time_create)::timestamp::date < date_trunc('day', now())::timestamp::date
-        GROUP BY date, product 
-        ORDER BY date ) 
-        UNION ALL 
-        ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, '${products.ALL}',
-        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter} AND date_trunc('day', time_create)::timestamp::date < date_trunc('day', now())::timestamp::date
-        GROUP BY date 
-        ORDER BY date );`
+            SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , hardware,
+            ${callsdayFilter}  FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+            AND product = 'SIP'
+            GROUP BY date ${show_subcategory} , hardware
+            ORDER BY date; 
+        `
+
+        return await this.request(query);
+    }
+
+    /**
+     * Возвращает список моделей для продукта SIP
+     *
+     * @returns
+     * @memberof DbHelper
+     */
+    async getSipModels() {
+        const query =
+            `    
+           SELECT DISTINCT (hardware) FROM ${environment.table_calls} WHERE product='SIP' ORDER BY hardware; 
+        `
 
         return await this.request(query);
     }

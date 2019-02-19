@@ -1,8 +1,16 @@
 class GroupBy {
 
+    /**
+     *
+     *
+     * @param {*} data
+     * @param {*} attr
+     * @returns
+     * @memberof GroupBy
+     */
     parse(data, attr) {
         const result = [];
-        const buff = this.groupBy(data, 'date');
+        const buff = this._groupBy(data, 'date');
         for (const key in buff) {
             const obj = {};
             buff[key].forEach(element => {
@@ -15,7 +23,7 @@ class GroupBy {
     };
 
     // Делаем группировку по продукту
-    groupBy(arr, key) {
+    _groupBy(arr, key) {
         return arr.reduce(function (groups, item) {
             const val = item[key];
             groups[val] = groups[val] || [];

@@ -6,6 +6,7 @@ const url = require('url');
 const db_helper = require('../../db/db_helper');
 const requester = require('../requester');
 const router = express.Router();
+const groupby = require('../../helper/groupby');
 
 router.route('/')
     .get(checkId);
@@ -76,6 +77,7 @@ async function getTaskContent(req, res, next) {
 
 
 async function getHardwareData(req, res, next) {
+    const period = req.query.period;
     const mode = req.query.mode;
     const day = req.query.day;
     const callscount = req.query.callscount;
@@ -84,8 +86,11 @@ async function getHardwareData(req, res, next) {
 
     let body;
     try {
-        const data = [] = await db_helper.getHardwareData(mode, day, callscount, subcategory, position);
-        body = requester.createBody(true, data, null);
+        let data = [] = await db_helper.getHardwareData(period, mode, day, callscount, subcategory, position);
+        data = groupby.parse(data, 'hardware');
+
+        const models = [] = (await db_helper.getSipModels()).map(el => el.hardware);
+        body = requester.createBody(true, { data, models }, null);
     }
     catch (error) {
         body = requester.getDbError(error);
