@@ -16,6 +16,21 @@ if (currentEnv === 'prod') {
     environment.sd_server = 'sd/j_security_check';
 }
 
+if (currentEnv === 'test') {
+    // dev
+    environment.host = '192.168.27.59'; //'localhost';
+    environment.port = '8882';
+    environment.db_host = '192.168.20.129';
+    environment.db_port = '5432';
+    environment.db_password = 'Qwe12345';
+    environment.db_user = 'postgres';
+    environment.db_dbname = 'postgres';
+    environment.table_calls = 'sd';
+    environment.table_holidays = 'holidays';
+    environment.sd_server = 'sd/j_security_check';
+}
+
+
 if (currentEnv === 'dev') {
     // dev
     environment.host = '192.168.27.59'; //'localhost';
