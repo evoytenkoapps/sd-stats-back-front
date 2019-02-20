@@ -320,7 +320,7 @@ module.exports = ""
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<!-- <app-main></app-main>\r\n<app-products></app-products>\r\n<app-subcategory></app-subcategory>\r\n<app-growposition></app-growposition>\r\n<app-taskcontent></app-taskcontent> -->\r\n<app-hardware></app-hardware>"
+module.exports = "<mat-toolbar color=\"primary\">\r\n    <mat-toolbar-row>\r\n        <button mat-raised-button style=\"margin: 1%\" (click)=\"showBlock1()\">Общие</button>\r\n        <button mat-raised-button (click)=\"showBlock2()\">Раков</button>\r\n    </mat-toolbar-row>\r\n</mat-toolbar>\r\n<router-outlet></router-outlet>"
 
 /***/ }),
 
@@ -335,23 +335,36 @@ module.exports = "<!-- <app-main></app-main>\r\n<app-products></app-products>\r\
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppComponent", function() { return AppComponent; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/router */ "./node_modules/@angular/router/fesm5/router.js");
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (undefined && undefined.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
 
 var AppComponent = /** @class */ (function () {
-    function AppComponent() {
+    function AppComponent(router) {
+        this.router = router;
         this.title = 'sd-stats-front';
     }
+    AppComponent.prototype.showBlock1 = function () {
+        this.router.navigate(['/block1']);
+    };
+    AppComponent.prototype.showBlock2 = function () {
+        this.router.navigate(['/block2']);
+    };
     AppComponent = __decorate([
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Component"])({
             selector: 'app-root',
             template: __webpack_require__(/*! ./app.component.html */ "./src/app/app.component.html"),
             styles: [__webpack_require__(/*! ./app.component.css */ "./src/app/app.component.css")]
-        })
+        }),
+        __metadata("design:paramtypes", [_angular_router__WEBPACK_IMPORTED_MODULE_1__["Router"]])
     ], AppComponent);
     return AppComponent;
 }());
@@ -390,6 +403,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _helper_mydateadapter__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./helper/mydateadapter */ "./src/app/helper/mydateadapter.ts");
 /* harmony import */ var _angular_material_button__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @angular/material/button */ "./node_modules/@angular/material/esm5/button.es5.js");
 /* harmony import */ var _components_hardware_hardware_component__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./components/hardware/hardware.component */ "./src/app/components/hardware/hardware.component.ts");
+/* harmony import */ var _angular_material_toolbar__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @angular/material/toolbar */ "./node_modules/@angular/material/esm5/toolbar.es5.js");
+/* harmony import */ var _components_block1_block1_component__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./components/block1/block1.component */ "./src/app/components/block1/block1.component.ts");
+/* harmony import */ var _components_block2_block2_component__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./components/block2/block2.component */ "./src/app/components/block2/block2.component.ts");
+/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @angular/router */ "./node_modules/@angular/router/fesm5/router.js");
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -416,6 +433,16 @@ var __decorate = (undefined && undefined.__decorate) || function (decorators, ta
 
 
 
+
+
+
+
+var appRoutes = [
+    { path: '', component: _components_block1_block1_component__WEBPACK_IMPORTED_MODULE_21__["Block1Component"] },
+    { path: 'block1', component: _components_block1_block1_component__WEBPACK_IMPORTED_MODULE_21__["Block1Component"] },
+    { path: 'block2', component: _components_block2_block2_component__WEBPACK_IMPORTED_MODULE_22__["Block2Component"] },
+    { path: '**', component: _components_block1_block1_component__WEBPACK_IMPORTED_MODULE_21__["Block1Component"] }
+];
 var AppModule = /** @class */ (function () {
     function AppModule() {
     }
@@ -428,7 +455,9 @@ var AppModule = /** @class */ (function () {
                 _components_subcategory_subcategory_component__WEBPACK_IMPORTED_MODULE_11__["SubcategoryComponent"],
                 _components_table_growposition_growposition_component__WEBPACK_IMPORTED_MODULE_12__["GrowpositionComponent"],
                 _components_table_taskcontent_taskcontent_component__WEBPACK_IMPORTED_MODULE_16__["TaskcontentComponent"],
-                _components_hardware_hardware_component__WEBPACK_IMPORTED_MODULE_19__["HardwareComponent"]
+                _components_hardware_hardware_component__WEBPACK_IMPORTED_MODULE_19__["HardwareComponent"],
+                _components_block1_block1_component__WEBPACK_IMPORTED_MODULE_21__["Block1Component"],
+                _components_block2_block2_component__WEBPACK_IMPORTED_MODULE_22__["Block2Component"]
             ],
             imports: [
                 _angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__["BrowserModule"],
@@ -445,13 +474,141 @@ var AppModule = /** @class */ (function () {
                 _angular_material__WEBPACK_IMPORTED_MODULE_14__["MatInputModule"],
                 _angular_material_table__WEBPACK_IMPORTED_MODULE_15__["MatTableModule"],
                 _angular_material__WEBPACK_IMPORTED_MODULE_14__["MatSortModule"],
-                _angular_material_button__WEBPACK_IMPORTED_MODULE_18__["MatButtonModule"]
+                _angular_material_button__WEBPACK_IMPORTED_MODULE_18__["MatButtonModule"],
+                _angular_material_toolbar__WEBPACK_IMPORTED_MODULE_20__["MatToolbarModule"],
+                _angular_router__WEBPACK_IMPORTED_MODULE_23__["RouterModule"].forRoot(appRoutes)
             ],
             providers: [{ provide: _angular_material__WEBPACK_IMPORTED_MODULE_14__["DateAdapter"], useClass: _helper_mydateadapter__WEBPACK_IMPORTED_MODULE_17__["MyDateAdapter"] }],
             bootstrap: [_app_component__WEBPACK_IMPORTED_MODULE_2__["AppComponent"]]
         })
     ], AppModule);
     return AppModule;
+}());
+
+
+
+/***/ }),
+
+/***/ "./src/app/components/block1/block1.component.css":
+/*!********************************************************!*\
+  !*** ./src/app/components/block1/block1.component.css ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = ""
+
+/***/ }),
+
+/***/ "./src/app/components/block1/block1.component.html":
+/*!*********************************************************!*\
+  !*** ./src/app/components/block1/block1.component.html ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "<app-main></app-main>\n<app-products></app-products>\n<app-subcategory></app-subcategory>\n<app-growposition></app-growposition>\n<app-taskcontent></app-taskcontent>"
+
+/***/ }),
+
+/***/ "./src/app/components/block1/block1.component.ts":
+/*!*******************************************************!*\
+  !*** ./src/app/components/block1/block1.component.ts ***!
+  \*******************************************************/
+/*! exports provided: Block1Component */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Block1Component", function() { return Block1Component; });
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (undefined && undefined.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+var Block1Component = /** @class */ (function () {
+    function Block1Component() {
+    }
+    Block1Component.prototype.ngOnInit = function () {
+    };
+    Block1Component = __decorate([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Component"])({
+            selector: 'app-block1',
+            template: __webpack_require__(/*! ./block1.component.html */ "./src/app/components/block1/block1.component.html"),
+            styles: [__webpack_require__(/*! ./block1.component.css */ "./src/app/components/block1/block1.component.css")]
+        }),
+        __metadata("design:paramtypes", [])
+    ], Block1Component);
+    return Block1Component;
+}());
+
+
+
+/***/ }),
+
+/***/ "./src/app/components/block2/block2.component.css":
+/*!********************************************************!*\
+  !*** ./src/app/components/block2/block2.component.css ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = ""
+
+/***/ }),
+
+/***/ "./src/app/components/block2/block2.component.html":
+/*!*********************************************************!*\
+  !*** ./src/app/components/block2/block2.component.html ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "<app-hardware></app-hardware>"
+
+/***/ }),
+
+/***/ "./src/app/components/block2/block2.component.ts":
+/*!*******************************************************!*\
+  !*** ./src/app/components/block2/block2.component.ts ***!
+  \*******************************************************/
+/*! exports provided: Block2Component */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Block2Component", function() { return Block2Component; });
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (undefined && undefined.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+var Block2Component = /** @class */ (function () {
+    function Block2Component() {
+    }
+    Block2Component.prototype.ngOnInit = function () {
+    };
+    Block2Component = __decorate([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Component"])({
+            selector: 'app-block2',
+            template: __webpack_require__(/*! ./block2.component.html */ "./src/app/components/block2/block2.component.html"),
+            styles: [__webpack_require__(/*! ./block2.component.css */ "./src/app/components/block2/block2.component.css")]
+        }),
+        __metadata("design:paramtypes", [])
+    ], Block2Component);
+    return Block2Component;
 }());
 
 
@@ -476,7 +633,7 @@ module.exports = "#chartdiv {\r\n    width: 100%;\r\n    height: 500px;\r\n  }\r
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div>\n    <div><span>В разрезе продуктов</span></div>\n    <mat-form-field>\n        <mat-select [(value)]=\"period\" (selectionChange)=\"getData()\">\n            <mat-option value=\"{{periods.DAY}}\">День</mat-option>\n            <mat-option value=\"{{periods.WEEK}}\">Неделя</mat-option>\n            <mat-option value=\"{{periods.MONTH}}\">Месяц</mat-option>\n            <mat-option value=\"{{periods.YEAR}}\">Год</mat-option>\n        </mat-select>\n    </mat-form-field>\n    <div>\n        <div>\n            <mat-radio-group class=\"example-radio-group1\" [(ngModel)]=\"mode\">\n                <mat-radio-button class=\"example-radio-button1\" *ngFor=\"let x of modes\" [value]=\"x.value\" (change)=\"onToggle($event)\">\n                    {{x.label}}\n                </mat-radio-button>\n            </mat-radio-group>\n        </div>\n        <div>\n            <mat-radio-group class=\"example-radio-group2\" [(ngModel)]=\"day\">\n                <mat-radio-button class=\"example-radio-button2\" *ngFor=\"let item of workingdays\" [value]=\"item.value\" (change)=\"onToggleCb($event)\">\n                    {{item.label}}\n                </mat-radio-button>\n            </mat-radio-group>\n        </div>\n        <div>\n            <mat-radio-group class=\"example-radio-group3\" [(ngModel)]=\"callscount\">\n                <mat-radio-button class=\"example-radio-button3\" *ngFor=\"let y of callsday\" [value]=\"y.value\" (change)=\"onToggleCalls($event)\">\n                    {{y.label}}\n                </mat-radio-button>\n            </mat-radio-group>\n        </div>\n    </div>\n    <div>\n        <mat-form-field>\n            <mat-select [(value)]=\"subcategory\" (selectionChange)=\"getPositions()\">\n                <mat-option *ngFor=\"let subcategory of subcategories\" [value]=\"subcategory\">\n                    {{subcategory}}\n                </mat-option>\n            </mat-select>\n        </mat-form-field>\n\n\n        <mat-form-field *ngIf=\"positions && subcategory\">\n            <mat-select [(value)]=\"position\" (selectionChange)=\"getData()\">\n                <mat-option *ngFor=\"let position of positions\" [value]=\"position\">\n                    {{position}}\n                </mat-option>\n            </mat-select>\n        </mat-form-field>\n    </div>\n\n    <div id=\"chartdiv\"></div>\n</div>"
+module.exports = "<div>\n    <div><span>В разрезе оборудования</span></div>\n    <mat-form-field>\n        <mat-select [(value)]=\"period\" (selectionChange)=\"getData()\">\n            <mat-option value=\"{{periods.DAY}}\">День</mat-option>\n            <mat-option value=\"{{periods.WEEK}}\">Неделя</mat-option>\n            <mat-option value=\"{{periods.MONTH}}\">Месяц</mat-option>\n            <mat-option value=\"{{periods.YEAR}}\">Год</mat-option>\n        </mat-select>\n    </mat-form-field>\n    <div>\n        <div>\n            <mat-radio-group class=\"example-radio-group1\" [(ngModel)]=\"mode\">\n                <mat-radio-button class=\"example-radio-button1\" *ngFor=\"let x of modes\" [value]=\"x.value\" (change)=\"onToggle($event)\">\n                    {{x.label}}\n                </mat-radio-button>\n            </mat-radio-group>\n        </div>\n        <div>\n            <mat-radio-group class=\"example-radio-group2\" [(ngModel)]=\"day\">\n                <mat-radio-button class=\"example-radio-button2\" *ngFor=\"let item of workingdays\" [value]=\"item.value\" (change)=\"onToggleCb($event)\">\n                    {{item.label}}\n                </mat-radio-button>\n            </mat-radio-group>\n        </div>\n        <div>\n            <mat-radio-group class=\"example-radio-group3\" [(ngModel)]=\"callscount\">\n                <mat-radio-button class=\"example-radio-button3\" *ngFor=\"let y of callsday\" [value]=\"y.value\" (change)=\"onToggleCalls($event)\">\n                    {{y.label}}\n                </mat-radio-button>\n            </mat-radio-group>\n        </div>\n    </div>\n    <div>\n        <mat-form-field>\n            <mat-select placeholder=\"Подкатегория\" [(value)]=\"subcategory\" (selectionChange)=\"getPositions()\">\n                <mat-option *ngFor=\"let subcategory of subcategories\" [value]=\"subcategory\">\n                    {{subcategory}}\n                </mat-option>\n            </mat-select>\n        </mat-form-field>\n\n\n        <mat-form-field *ngIf=\"positions && subcategory\">\n            <mat-select placeholder=\"Позиция\" [(value)]=\"position\" (selectionChange)=\"getData()\">\n                <mat-option *ngFor=\"let position of positions\" [value]=\"position\">\n                    {{position}}\n                </mat-option>\n            </mat-select>\n        </mat-form-field>\n    </div>\n\n    <div id=\"chartdiv\"></div>\n</div>"
 
 /***/ }),
 
@@ -661,7 +818,7 @@ var HardwareComponent = /** @class */ (function () {
             result.push({
                 "valueAxis": val,
                 "balloon": {
-                    "drop": true,
+                    "drop": false,
                     "adjustBorderColor": false,
                     "color": "#ffffff"
                 },
