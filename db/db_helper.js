@@ -235,7 +235,7 @@ WITH val AS (
     async getHardwareData(period, mode, day, cday, subcategory, position) {
         const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
         const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
-        const filter_product = ` AND product = 'SIP'`;
+        const filter_product = ` AND ( product = 'SIP' OR product = 'MTALKER' )`;
         const show_subcategory = subcategory ? ',subcategory' : '';
 
         const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
@@ -279,6 +279,15 @@ WITH val AS (
             (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Gigaset_all' as hardware, ${callsdayFilter}  
             FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
             ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Giga%'
+            GROUP BY date ${show_subcategory}
+            ORDER BY date)
+
+            
+            UNION ALL
+            -- Все M.TALKER_all
+            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , '10. M.TALKER_all' as hardware, ${callsdayFilter}  
+            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+            ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%M.TALKER%'
             GROUP BY date ${show_subcategory}
             ORDER BY date)
         `
