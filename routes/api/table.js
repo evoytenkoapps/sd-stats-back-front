@@ -92,7 +92,9 @@ async function getHardwareData(req, res, next) {
         // Формируем уникальный массив моделей
         data.forEach(el => {
             for (const property in el) {
-                models.find(e => e === property) ? null : models.push(property);
+                if (property !== 'date') {
+                    models.find(model => model === property) ? null : models.push(property);
+                }
             }
         });
         models.sort();
