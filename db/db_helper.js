@@ -242,6 +242,41 @@ WITH val AS (
         const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
         const query =
+            `
+WITH period AS
+  ( SELECT period,
+           COUNT (distinct(date)) AS peroid_days
+   FROM
+     (SELECT date_trunc('${period}', date)::date AS period , date
+      FROM
+        (SELECT (generate_series('2018-09-01', now(), '1 day'::interval))::date date) t
+      WHERE t.date NOT IN
+          (SELECT date
+           FROM holidays) ) t1
+   GROUP BY period),
+     j_data AS
+  (SELECT *
+   FROM (
+           (SELECT date_trunc('${period}', time_create)::date AS date
+                   ${show_subcategory},
+                   hardware,
+                   count(id)
+            FROM sd
+            WHERE MODE = '${mode}' ${workingFilter} ${filter_product} ${filter_position} ${filter_subcat}
+            GROUP BY date  ${show_subcategory} , hardware
+            ORDER BY date) t_h
+         LEFT JOIN
+           (SELECT *
+            FROM period) t_p ON t_h.date = t_p.period) t_res)
+SELECT date || '' as date ${show_subcategory},
+            hardware, 
+            round(COUNT::numeric / peroid_days::numeric, 2) as count
+FROM j_data
+`;
+
+
+
+        const query1 =
             `    
             -- Поштучно
             (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , hardware,${callsdayFilter}  
@@ -291,7 +326,7 @@ WITH val AS (
             GROUP BY date ${show_subcategory}
             ORDER BY date)
         `
-        
+
 
         return await this.request(query);
     }
