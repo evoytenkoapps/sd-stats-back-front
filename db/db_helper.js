@@ -238,11 +238,9 @@ WITH val AS (
         const filter_product = ` AND ( product = 'SIP' OR product = 'MTALKER' )`;
         const filter_working_day1 = day === workingdays.working ? `   WHERE t.date NOT IN (SELECT date FROM holidays)` : '';
         const filter_working_day2 = day === workingdays.working ? `AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
-
-
+        const show_calls_in_day = cday === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2) as count` : `count`;
         const show_subcategory = subcategory ? ',subcategory' : '';
 
-        const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
         const query =
             `
@@ -271,7 +269,7 @@ WITH period AS
             FROM period) t_p ON t_h.date = t_p.period) t_res)
 SELECT date || '' as date ${show_subcategory},
             hardware, 
-            round(COUNT::numeric / peroid_days::numeric, 2) as count
+            ${show_calls_in_day}
 FROM j_data
 `;
 
