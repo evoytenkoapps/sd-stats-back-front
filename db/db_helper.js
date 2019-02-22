@@ -236,9 +236,12 @@ WITH val AS (
         const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
         const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
         const filter_product = ` AND ( product = 'SIP' OR product = 'MTALKER' )`;
+        const filter_working_day1 = day === workingdays.working ? `   WHERE t.date NOT IN (SELECT date FROM holidays)` : '';
+        const filter_working_day2 = day === workingdays.working ? `AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
+
+
         const show_subcategory = subcategory ? ',subcategory' : '';
 
-        const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
         const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
         const query =
@@ -250,9 +253,7 @@ WITH period AS
      (SELECT date_trunc('${period}', date)::date AS period , date
       FROM
         (SELECT (generate_series('2018-09-01', now(), '1 day'::interval))::date date) t
-      WHERE t.date NOT IN
-          (SELECT date
-           FROM holidays) ) t1
+    ${filter_working_day1} ) t1
    GROUP BY period),
      j_data AS
   (SELECT *
@@ -262,7 +263,7 @@ WITH period AS
                    hardware,
                    count(id)
             FROM sd
-            WHERE MODE = '${mode}' ${workingFilter} ${filter_product} ${filter_position} ${filter_subcat}
+            WHERE MODE = '${mode}' ${filter_working_day2} ${filter_product} ${filter_position} ${filter_subcat}
             GROUP BY date  ${show_subcategory} , hardware
             ORDER BY date) t_h
          LEFT JOIN
@@ -274,60 +275,56 @@ SELECT date || '' as date ${show_subcategory},
 FROM j_data
 `;
 
+        // const query1 =
+        //     `    
+        //     -- Поштучно
+        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , hardware,${callsdayFilter}  
+        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        //     ${filter_product} ${filter_position} ${filter_subcat}
+        //     GROUP BY date ${show_subcategory} , hardware
+        //     ORDER BY date)
+
+        //     UNION ALL
+        //     -- Все Yealink_all
+        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Yealink_all' as hardware, ${callsdayFilter}  
+        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        //     ${filter_product} ${filter_position} ${filter_subcat}  AND hardware like '%Yeal%'
+        //     GROUP BY date ${show_subcategory}
+        //     ORDER BY date)
+
+        //     UNION ALL
+        //     -- Все Panasonic_all
+        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Panasonic_all' as hardware, ${callsdayFilter}  
+        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        //     ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Panas%'
+        //     GROUP BY date ${show_subcategory}
+        //     ORDER BY date)
+
+        //     UNION ALL
+        //     -- Все Grandstream_all
+        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Grandstream_all' as hardware, ${callsdayFilter}  
+        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        //     ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Grand%'
+        //     GROUP BY date ${show_subcategory}
+        //     ORDER BY date)
+
+        //     UNION ALL
+        //     -- Все Gigaset_all
+        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Gigaset_all' as hardware, ${callsdayFilter}  
+        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        //     ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Giga%'
+        //     GROUP BY date ${show_subcategory}
+        //     ORDER BY date)
 
 
-        const query1 =
-            `    
-            -- Поштучно
-            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , hardware,${callsdayFilter}  
-            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            ${filter_product} ${filter_position} ${filter_subcat}
-            GROUP BY date ${show_subcategory} , hardware
-            ORDER BY date)
-
-            UNION ALL
-            -- Все Yealink_all
-            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Yealink_all' as hardware, ${callsdayFilter}  
-            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            ${filter_product} ${filter_position} ${filter_subcat}  AND hardware like '%Yeal%'
-            GROUP BY date ${show_subcategory}
-            ORDER BY date)
-
-            UNION ALL
-            -- Все Panasonic_all
-            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Panasonic_all' as hardware, ${callsdayFilter}  
-            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Panas%'
-            GROUP BY date ${show_subcategory}
-            ORDER BY date)
-
-            UNION ALL
-            -- Все Grandstream_all
-            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Grandstream_all' as hardware, ${callsdayFilter}  
-            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Grand%'
-            GROUP BY date ${show_subcategory}
-            ORDER BY date)
-
-            UNION ALL
-            -- Все Gigaset_all
-            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Gigaset_all' as hardware, ${callsdayFilter}  
-            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Giga%'
-            GROUP BY date ${show_subcategory}
-            ORDER BY date)
-
-            
-            UNION ALL
-            -- Все M.TALKER_all
-            (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , '10. M.TALKER_all' as hardware, ${callsdayFilter}  
-            FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-            ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%M.TALKER%'
-            GROUP BY date ${show_subcategory}
-            ORDER BY date)
-        `
-
-
+        //     UNION ALL
+        //     -- Все M.TALKER_all
+        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , '10. M.TALKER_all' as hardware, ${callsdayFilter}  
+        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        //     ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%M.TALKER%'
+        //     GROUP BY date ${show_subcategory}
+        //     ORDER BY date)
+        //`
         return await this.request(query);
     }
 
