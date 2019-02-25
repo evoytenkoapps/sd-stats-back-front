@@ -240,6 +240,7 @@ WITH val AS (
         const filter_working_day2 = day === workingdays.working ? `AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
         const show_calls_in_day = cday === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2) as count` : `count`;
         const show_subcategory = subcategory ? ',subcategory' : '';
+        const show_position = position ? ',position' : '';
 
 
         const query =
@@ -257,18 +258,17 @@ WITH period AS
   (SELECT *
    FROM (
            (SELECT date_trunc('${period}', time_create)::date AS date
-                   ${show_subcategory},
+                   ${show_subcategory} ${show_position} ,
                    hardware,
                    count(id)
             FROM sd
             WHERE MODE = '${mode}' ${filter_working_day2} ${filter_product} ${filter_position} ${filter_subcat}
-            GROUP BY date  ${show_subcategory} , hardware
+            GROUP BY date  ${show_subcategory} ${show_position} , hardware
             ORDER BY date) t_h
          LEFT JOIN
            (SELECT *
             FROM period) t_p ON t_h.date = t_p.period) t_res)
-SELECT date || '' as date ${show_subcategory},
-            hardware, 
+SELECT date || '' as date ${show_subcategory} ${show_position} , hardware, 
             ${show_calls_in_day}
 FROM j_data
 `;
