@@ -233,41 +233,55 @@ WITH val AS (
      * @memberof DbHelper
      */
     async getHardwareData(period, mode, day, cday, subcategory, position) {
+        const filter_mode = mode ? ` MODE = '${mode}'` : ``;
         const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
         const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
         const filter_product = ` AND ( product = 'SIP' OR product = 'MTALKER' )`;
         const filter_working_day1 = day === workingdays.working ? `   WHERE t.date NOT IN (SELECT date FROM holidays)` : '';
-        const filter_working_day2 = day === workingdays.working ? `AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
+        const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
         const show_calls_in_day = cday === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2) as count` : `count`;
-        const show_subcategory = subcategory ? ',subcategory' : '';
-        const show_position = position ? ',position' : '';
+        const show_subcategory = subcategory ? ', subcategory' : '';
+        const show_position = position ? ', position' : '';
+        const hardwares = [['ALL', '%%'], ['Yealink_all', '%Yeal%'], ['Panasonic_all', '%Panas%'], ['Grandstream_all', '%Grand%'], ['Gigaset_all', '%Giga%'], ['M.TALKER_all', '%M.TALKER%']];
+        let query_hardwares = ``;
 
+        hardwares.forEach(el => {
+            const filter_hardware = ` AND hardware like '${el[1]}'`;
+            query_hardwares += `
+        UNION ALL 
+
+        ( SELECT date_trunc('${period}', time_create)::date AS date ${show_subcategory} ${show_position} , '${el[0]}' as hardware, count(id)
+        FROM ${environment.table_calls}
+        WHERE ${filter_mode} ${filter_working_day2} ${filter_product} ${filter_position} ${filter_subcat} ${filter_hardware}
+        GROUP BY date  ${show_subcategory} ${show_position} , hardware
+        ORDER BY date )
+        `;
+        });
 
         const query =
             `
 WITH period AS
-  ( SELECT period,
-           COUNT (distinct(date)) AS peroid_days
-   FROM
-     (SELECT date_trunc('${period}', date)::date AS period , date
+    ( SELECT period,
+             COUNT (distinct(date)) AS peroid_days
       FROM
-        (SELECT (generate_series('2018-09-01', now(), '1 day'::interval))::date date) t
-    ${filter_working_day1} ) t1
-   GROUP BY period),
+       (SELECT date_trunc('${period}', date)::date AS period , date
+       FROM
+         ( SELECT (generate_series('2018-09-01', now(), '1 day'::interval))::date date) t
+      ${filter_working_day1} ) t1
+     GROUP BY period), 
+tasks as ( ( SELECT date_trunc('${period}', time_create)::date AS date ${show_subcategory} ${show_position} , hardware, count(id)
+FROM sd
+WHERE MODE = '${mode}' ${filter_working_day2} ${filter_product} ${filter_position} ${filter_subcat}
+GROUP BY date  ${show_subcategory} ${show_position} , hardware
+ORDER BY date )
+${query_hardwares}), 
      j_data AS
   (SELECT *
    FROM (
-           (SELECT date_trunc('${period}', time_create)::date AS date
-                   ${show_subcategory} ${show_position} ,
-                   hardware,
-                   count(id)
-            FROM sd
-            WHERE MODE = '${mode}' ${filter_working_day2} ${filter_product} ${filter_position} ${filter_subcat}
-            GROUP BY date  ${show_subcategory} ${show_position} , hardware
-            ORDER BY date) t_h
+           ( SELECT * FROM tasks) t_t
          LEFT JOIN
            (SELECT *
-            FROM period) t_p ON t_h.date = t_p.period) t_res)
+            FROM period) t_p ON t_t.date = t_p.period) t_res)
 SELECT date || '' as date ${show_subcategory} ${show_position} , hardware, 
             ${show_calls_in_day}
 FROM j_data
