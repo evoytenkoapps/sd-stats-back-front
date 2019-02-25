@@ -242,7 +242,7 @@ WITH val AS (
         const show_calls_in_day = cday === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2) as count` : `count`;
         const show_subcategory = subcategory ? ', subcategory' : '';
         const show_position = position ? ', position' : '';
-        const hardwares = [['ALL', '%%'], ['Yealink_all', '%Yeal%'], ['Panasonic_all', '%Panas%'], ['Grandstream_all', '%Grand%'], ['Gigaset_all', '%Giga%'], ['M.TALKER_all', '%M.TALKER%']];
+        const hardwares = [['ALL', '%%'], ['Yealink_all', '%Yeal%'], ['Panasonic_all', '%Panas%'], ['Grandstream_all', '%Grand%'], ['Gigaset_all', '%Giga%'], ['10. M.TALKER_all', '%M.TALKER%']];
         let query_hardwares = ``;
 
         hardwares.forEach(el => {
