@@ -253,7 +253,7 @@ WITH val AS (
         ( SELECT date_trunc('${period}', time_create)::date AS date ${show_subcategory} ${show_position} , '${el[0]}' as hardware, count(id)
         FROM ${environment.table_calls}
         WHERE ${filter_mode} ${filter_working_day2} ${filter_product} ${filter_position} ${filter_subcat} ${filter_hardware}
-        GROUP BY date  ${show_subcategory} ${show_position} , hardware
+        GROUP BY date  ${show_subcategory} ${show_position}
         ORDER BY date )
         `;
         });
