@@ -67,6 +67,7 @@ class DbHelper {
         const filter_mode = mode ? ` MODE = '${mode}'` : ``;
         const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
         const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
+        const filter_not_now = ` AND time_create::date < now()::date`;
         const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
         const query =
             `
@@ -76,7 +77,7 @@ class DbHelper {
          FROM
            (SELECT date_trunc('${period}', date)::date AS period , date
             FROM
-              (SELECT (generate_series('${environment.sql_periods_start_date}', now(), '1 day'::interval))::date date) t
+              (SELECT (generate_series('${environment.sql_periods_start_date}', current_date - 1, '1 day'::interval))::date date) t
              ${filter_working_day1}) t1
          GROUP BY period),
            tasks AS
@@ -84,7 +85,7 @@ class DbHelper {
                          product,
                          COUNT(id)
                   FROM sd
-                  WHERE ${filter_mode} ${filter_working_day2}
+                  WHERE ${filter_mode} ${filter_working_day2} ${filter_not_now}
                   GROUP BY date, product
                   ORDER BY date)
                UNION ALL
@@ -92,7 +93,7 @@ class DbHelper {
                          'ALL',
                          COUNT(id)
                   FROM sd
-                  WHERE ${filter_mode} ${filter_working_day2}
+                  WHERE ${filter_mode} ${filter_working_day2} ${filter_not_now}
                   GROUP BY date
                   ORDER BY date) 
         ),
