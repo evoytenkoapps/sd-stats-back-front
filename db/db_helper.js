@@ -242,6 +242,8 @@ WITH val AS (
         const show_calls_in_day = cday === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2) as count` : `count`;
         const show_subcategory = subcategory ? ', subcategory' : '';
         const show_position = position ? ', position' : '';
+        const show_subcategory_is_null = subcategory ? ` , CASE WHEN subcategory is NULL THEN '${subcategory}' ELSE subcategory END as subcategory` : '';
+        const show_position_is_null = position ? ` , CASE WHEN position is NULL THEN '${position}' ELSE position END as position ` : '';
         const hardwares = [['ALL', '%%'], ['Yealink_all', '%Yeal%'], ['Panasonic_all', '%Panas%'], ['Grandstream_all', '%Grand%'], ['Gigaset_all', '%Giga%'], ['10. M.TALKER_all', '%M.TALKER%']];
         let query_hardwares = ``;
 
@@ -266,7 +268,7 @@ WITH period AS
       FROM
        (SELECT date_trunc('${period}', date)::date AS period , date
        FROM
-         ( SELECT (generate_series('2018-09-01', now(), '1 day'::interval))::date date) t
+         ( SELECT (generate_series('${environment.sql_periods_start_date}', now(), '1 day'::interval))::date date) t
       ${filter_working_day1} ) t1
      GROUP BY period), 
 tasks as ( ( SELECT date_trunc('${period}', time_create)::date AS date ${show_subcategory} ${show_position} , hardware, count(id)
@@ -275,16 +277,30 @@ WHERE MODE = '${mode}' ${filter_working_day2} ${filter_product} ${filter_positio
 GROUP BY date  ${show_subcategory} ${show_position} , hardware
 ORDER BY date )
 ${query_hardwares}), 
-     j_data AS
-  (SELECT *
-   FROM (
-           ( SELECT * FROM tasks) t_t
-         LEFT JOIN
-           (SELECT *
-            FROM period) t_p ON t_t.date = t_p.period) t_res)
-SELECT date || '' as date ${show_subcategory} ${show_position} , hardware, 
-            ${show_calls_in_day}
-FROM j_data
+
+-- Конкат заявок и периодов
+        
+j_tasks AS
+(
+SELECT CASE WHEN date is NULL THEN period ELSE date END as date ${show_subcategory_is_null} ${show_position_is_null} , hardware, CASE WHEN count is NULL THEN 0 ELSE count END as count 
+FROM (
+      ( SELECT * FROM tasks) t_t
+    RIGHT JOIN
+      ( SELECT *
+       FROM period ) t_p ON t_t.date = t_p.period )
+       ),
+-- Конкат оборудования и периодов чтобы определеить оборудования по которым нет заявок
+
+       j_harwdwares AS ( SELECT * FROM (( SELECT DISTINCT hardware as j_harwdwares_hardware FROM tasks ) t_h
+    CROSS JOIN
+      ( SELECT period as j_harwdwares_period
+       FROM period ) t_p ) ),
+
+         -- Конкат оборудования и заявок чтобы выставить подкатегорию и позицию по которым нет заявок
+                       
+       j_tasks_null AS ( SELECT date ${show_subcategory} ${show_position}, CASE WHEN hardware is NULL THEN j_harwdwares_hardware END as hardware,count   FROM ( SELECT * FROM j_tasks WHERE hardware is NULL ) t_n LEFT JOIN ( SELECT * FROM j_harwdwares )  t_h ON   t_n.date= t_h.j_harwdwares_period )
+
+       SELECT date || '' as date, hardware,count FROM  ( SELECT * FROM j_tasks  UNION ALL SELECT * FROM  j_tasks_null ORDER BY date ) t_res
 `;
 
         // const query1 =

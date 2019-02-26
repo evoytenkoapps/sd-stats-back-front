@@ -14,6 +14,7 @@ if (currentEnv === 'prod') {
     environment.table_calls = 'sd';
     environment.table_holidays = 'holidays';
     environment.sd_server = 'sd/j_security_check';
+    environment.sql_periods_start_date = '2018-10-10';
 }
 
 if (currentEnv === 'test') {
@@ -28,6 +29,7 @@ if (currentEnv === 'test') {
     environment.table_calls = 'sd';
     environment.table_holidays = 'holidays';
     environment.sd_server = 'sd/j_security_check';
+    environment.sql_periods_start_date = '2018-10-10';
 }
 
 
@@ -43,6 +45,7 @@ if (currentEnv === 'dev') {
     environment.table_calls = 'test_sd';
     environment.table_holidays = 'holidays';
     environment.sd_server = 'sd/j_security_check';
+    environment.sql_periods_start_date = '2018-10-10';
 }
 
 module.exports = environment;
