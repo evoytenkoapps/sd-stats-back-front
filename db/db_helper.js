@@ -232,14 +232,14 @@ WITH val AS (
      * @returns
      * @memberof DbHelper
      */
-    async getHardwareData(period, mode, day, cday, subcategory, position) {
+    async getHardwareData(period, mode, day, callsInDay, subcategory, position) {
         const filter_mode = mode ? ` MODE = '${mode}'` : ``;
         const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
         const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
         const filter_product = ` AND ( product = 'SIP' OR product = 'MTALKER' )`;
         const filter_working_day1 = day === workingdays.working ? `   WHERE t.date NOT IN (SELECT date FROM holidays)` : '';
         const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
-        const show_calls_in_day = cday === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2) as count` : `count`;
+        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2) as count` : `count`;
         const show_subcategory = subcategory ? ', subcategory' : '';
         const show_position = position ? ', position' : '';
         const show_subcategory_is_null = subcategory ? ` , CASE WHEN subcategory is NULL THEN '${subcategory}' ELSE subcategory END as subcategory` : '';
