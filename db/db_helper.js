@@ -239,7 +239,7 @@ WITH val AS (
         const filter_product = ` AND ( product = 'SIP' OR product = 'MTALKER' )`;
         const filter_working_day1 = day === workingdays.working ? `   WHERE t.date NOT IN (SELECT date FROM holidays)` : '';
         const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
-        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2) as count` : `count`;
+        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
         const show_subcategory = subcategory ? ', subcategory' : '';
         const show_position = position ? ', position' : '';
         const show_subcategory_is_null = subcategory ? ` , CASE WHEN subcategory is NULL THEN '${subcategory}' ELSE subcategory END as subcategory` : '';
@@ -282,7 +282,7 @@ ${query_hardwares}),
         
 j_tasks AS
 (
-SELECT CASE WHEN date is NULL THEN period ELSE date END as date ${show_subcategory_is_null} ${show_position_is_null} , hardware, CASE WHEN count is NULL THEN 0 ELSE count END as count 
+SELECT CASE WHEN date is NULL THEN period ELSE date END as date ${show_subcategory_is_null} ${show_position_is_null} , hardware, CASE WHEN count is NULL THEN 0 ELSE ${show_calls_in_day} END as count 
 FROM (
       ( SELECT * FROM tasks) t_t
     RIGHT JOIN
