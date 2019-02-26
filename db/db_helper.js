@@ -40,28 +40,6 @@ class DbHelper {
 
     async getProduct(product, period, mode, day, cday) {
 
-        if (!Object.values(products).find(el => el === product)) {
-            throw Error('Wrong product :' + product);
-        }
-
-        if (!Object.values(periods).find(el => el === period)) {
-            throw Error('Wrong period :' + period);
-        }
-
-        if (!Object.values(modes).find(el => el === mode)) {
-            throw Error('Wrong mode :' + mode);
-        };
-
-        if (!Object.values(workingdays).find(el => el === day)) {
-            throw Error('Wrong day :' + day);
-        };
-
-        if (!Object.values(callsday).find(el =>
-            el === cday)) {
-            throw Error('Wrong callsday :' + cday);
-        };
-
-
         const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
         const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
@@ -302,57 +280,6 @@ FROM (
 
        SELECT date || '' as date, hardware,count FROM  ( SELECT * FROM j_tasks  UNION ALL SELECT * FROM  j_tasks_null ORDER BY date ) t_res
 `;
-
-        // const query1 =
-        //     `    
-        //     -- Поштучно
-        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , hardware,${callsdayFilter}  
-        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        //     ${filter_product} ${filter_position} ${filter_subcat}
-        //     GROUP BY date ${show_subcategory} , hardware
-        //     ORDER BY date)
-
-        //     UNION ALL
-        //     -- Все Yealink_all
-        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Yealink_all' as hardware, ${callsdayFilter}  
-        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        //     ${filter_product} ${filter_position} ${filter_subcat}  AND hardware like '%Yeal%'
-        //     GROUP BY date ${show_subcategory}
-        //     ORDER BY date)
-
-        //     UNION ALL
-        //     -- Все Panasonic_all
-        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Panasonic_all' as hardware, ${callsdayFilter}  
-        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        //     ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Panas%'
-        //     GROUP BY date ${show_subcategory}
-        //     ORDER BY date)
-
-        //     UNION ALL
-        //     -- Все Grandstream_all
-        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Grandstream_all' as hardware, ${callsdayFilter}  
-        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        //     ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Grand%'
-        //     GROUP BY date ${show_subcategory}
-        //     ORDER BY date)
-
-        //     UNION ALL
-        //     -- Все Gigaset_all
-        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , 'Gigaset_all' as hardware, ${callsdayFilter}  
-        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        //     ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%Giga%'
-        //     GROUP BY date ${show_subcategory}
-        //     ORDER BY date)
-
-
-        //     UNION ALL
-        //     -- Все M.TALKER_all
-        //     (SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date ${show_subcategory} , '10. M.TALKER_all' as hardware, ${callsdayFilter}  
-        //     FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        //     ${filter_product} ${filter_position} ${filter_subcat} AND hardware like '%M.TALKER%'
-        //     GROUP BY date ${show_subcategory}
-        //     ORDER BY date)
-        //`
         return await this.request(query);
     }
 
