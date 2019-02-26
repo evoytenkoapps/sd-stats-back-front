@@ -62,43 +62,92 @@ class DbHelper {
         return [res1, res2];
     }
 
-    async getProducts(period, mode, day, cday) {
-        const periods = ['day', 'week', 'month', 'year'];
+    async getProducts(period, mode, day, callsInDay) {
 
-        if (!periods.find(el => period === el)) {
-            throw Error('Wrong period :' + period);
-        }
-
-        if (!Object.values(modes).find(el => el === mode)) {
-            throw Error('Wrong mode :' + mode);
-        }
-
-        if (!Object.values(workingdays).find(el => el === day)) {
-            throw Error('Wrong day :' + day);
-        }
-
-        if (!Object.values(callsday).find(el =>
-            el === cday)) {
-            throw Error('Wrong callsday :' + cday);
-        }
-
-        const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
-        const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
-
+        const filter_mode = mode ? ` MODE = '${mode}'` : ``;
+        const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
+        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
         const query =
             `    
-        ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, product,
-        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter} AND date_trunc('day', time_create)::timestamp::date < date_trunc('day', now())::timestamp::date
-        GROUP BY date, product 
-        ORDER BY date ) 
-        UNION ALL 
-        ( SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, '${products.ALL}',
-        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter} AND date_trunc('day', time_create)::timestamp::date < date_trunc('day', now())::timestamp::date
-        GROUP BY date 
-        ORDER BY date );
-        `
+        WITH period AS
+        (SELECT period,
+                COUNT (distinct(date)) AS peroid_days
+         FROM
+           (SELECT date_trunc('${period}', date)::date AS period , date
+            FROM
+              (SELECT (generate_series('${environment.sql_periods_start_date}', now(), '1 day'::interval))::date date) t
+             ${filter_working_day1}) t1
+         GROUP BY period),
+           tasks AS
+        (SELECT *
+         FROM (
+                 (SELECT date_trunc('${period}', time_create)::date AS date,
+                         product,
+                         COUNT(id)
+                  FROM sd
+                  WHERE ${filter_mode}
+                  GROUP BY date, product
+                  ORDER BY date)
+               UNION ALL
+                 (SELECT date_trunc('${period}', time_create)::date AS date,
+                         'ALL',
+                         COUNT(id)
+                  FROM sd
+                  WHERE ${filter_mode}
+                  GROUP BY date
+                  ORDER BY date)) t_res
+         ${filter_working_day1} ),
+           j_tasks AS
+        (SELECT CASE
+                    WHEN date IS NULL THEN period
+                    ELSE date
+                END AS date,
+                product,
+                CASE
+                    WHEN COUNT IS NULL THEN 0
+                    ELSE ${show_calls_in_day}
+                END AS COUNT
+         FROM (
+                 (SELECT *
+                  FROM tasks) t_t
+               RIGHT JOIN
+                 (SELECT *
+                  FROM period) t_p ON t_t.date = t_p.period)),
+           j_products AS
+        (SELECT *
+         FROM (
+                 (SELECT DISTINCT product AS j_products_product
+                  FROM tasks) t_prod
+               CROSS JOIN
+                 (SELECT period AS j_products_period
+                  FROM period) t_p)),
+           j_tasks_null AS
+        (SELECT date, CASE
+                          WHEN product IS NULL THEN j_products_product
+                      END AS product,
+                      COUNT
+         FROM
+           (SELECT *
+            FROM j_tasks
+            WHERE product IS NULL ) t_n
+         LEFT JOIN
+           (SELECT *
+            FROM j_products) t_h ON t_n.date= t_h.j_products_period)
+      SELECT date || '' AS date,
+                     product,
+                     COUNT
+      FROM
+        (SELECT *
+         FROM j_tasks
+         UNION ALL SELECT *
+         FROM j_tasks_null
+         ORDER BY date) t_res
+      ORDER BY DATE
+        `;
+
         const result = await this.request(query);
         return result;
+
     }
 
 
