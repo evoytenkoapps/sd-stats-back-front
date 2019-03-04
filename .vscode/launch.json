@@ -10,7 +10,7 @@
             "name": "Запустить программу",
             "program": "${workspaceFolder}\\server.js",
             "env": {
-                "NODE_ENV": "dev"
+                "NODE_ENV": "test"
             }
         }
     ]

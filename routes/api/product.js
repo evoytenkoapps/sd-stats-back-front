@@ -35,6 +35,7 @@ async function getProduct(req, res, next) {
                 }
             }
         });
+        result.attr.sort();
 
         body = requester.createBody(true, result, null);
 
