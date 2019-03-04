@@ -38,32 +38,95 @@ class DbHelper {
         return await this.request(query);
     }
 
-    async getProduct(product, period, mode, day, cday) {
+    async getProduct(product, period, mode, day, callsInDay) {
 
-        const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
-        const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
-
+        console.log('getProducts');
+        const filter_mode = mode ? ` MODE = '${mode}'` : ``;
+        const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
+        const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
+        const filter_not_now = ` AND time_create::date < now()::date`;
+        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
         const query_data =
-            `    
-        SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, subcategory,
-        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        AND product = '${product}'
-        GROUP BY date, subcategory 
-        ORDER BY date; 
-        `;
+            `
+       WITH period AS
+       (SELECT period,
+               COUNT (distinct(date)) AS peroid_days
+        FROM
+          (SELECT date_trunc('${period}', date)::date AS period , date
+           FROM
+             (SELECT (generate_series('${environment.sql_periods_start_date}', current_date - 1, '1 day'::interval))::date date) t
+            ${filter_working_day1}) t1
+        GROUP BY period),
+          tasks AS
+       ( (SELECT date_trunc('${period}', time_create)::date AS date,
+       subcategory,
+                        COUNT(id)
+                 FROM sd
+                 WHERE ${filter_mode}  AND product='${product}'  ${filter_working_day2} ${filter_not_now}
+                 GROUP BY date, subcategory
+                 ORDER BY date)
+              UNION ALL
+                (SELECT date_trunc('${period}', time_create)::date AS date,
+                        'ALL',
+                        COUNT(id)
+                 FROM sd
+                 WHERE ${filter_mode}  AND product='${product}'  ${filter_working_day2} ${filter_not_now}
+                 GROUP BY date
+                 ORDER BY date) 
+       ),
+          j_tasks AS
+       (SELECT CASE
+                   WHEN date IS NULL THEN period
+                   ELSE date
+               END AS date,
+               subcategory,
+               CASE
+                   WHEN COUNT IS NULL THEN 0
+                   ELSE ${show_calls_in_day}
+               END AS COUNT
+        FROM (
+                (SELECT *
+                 FROM tasks) t_t
+              RIGHT JOIN
+                (SELECT *
+                 FROM period) t_p ON t_t.date = t_p.period)),
+          j_subcategorys AS
+       (SELECT *
+        FROM (
+                (SELECT DISTINCT subcategory AS j_subcategorys_subcategory
+                 FROM tasks) t_prod
+              CROSS JOIN
+                (SELECT period AS j_subcategorys_period
+                 FROM period) t_p)),
+          j_tasks_null AS
+       (SELECT date, CASE
+                         WHEN subcategory IS NULL THEN j_subcategorys_subcategory
+                     END AS subcategory,
+                     COUNT
+        FROM
+          (SELECT *
+           FROM j_tasks
+           WHERE subcategory IS NULL ) t_n
+        LEFT JOIN
+          (SELECT *
+           FROM j_subcategorys) t_h ON t_n.date= t_h.j_subcategorys_period)
+     SELECT date || '' AS date,
+                    subcategory,
+                    COUNT
+     FROM
+       (SELECT *
+        FROM j_tasks
+        UNION ALL SELECT *
+        FROM j_tasks_null
+        ORDER BY date) t_res
+     ORDER BY DATE;
+       `;
 
-        const query_subcategory = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} WHERE product = '${product}';`
-
-        const [res1, res2] = await Promise.all([
-            this.request(query_data),
-            this.request(query_subcategory),
-        ]);
-
-        return [res1, res2];
+        return this.request(query_data);
     }
 
     async getProducts(period, mode, day, callsInDay) {
-
+        console.log('getProducts');
         const filter_mode = mode ? ` MODE = '${mode}'` : ``;
         const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
         const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';

@@ -23,27 +23,19 @@ async function getProduct(req, res, next) {
     let body;
     try {
         const result = { data: [], attr: [] };
-        const data = [] = await db_helper.getProduct(product, period, mode, day, callscount);
-        result.attr = data[1];
+        result.data = await db_helper.getProduct(product, period, mode, day, callscount);
         // Делаем группировку по продукту
-        var groupBy = function (arr, key) {
-            return arr.reduce(function (groups, item) {
-                const val = item[key];
-                groups[val] = groups[val] || [];
-                groups[val].push(item);
-                return groups;
-            }, {});
-        };
+        result.data = groupby.parse(result.data, 'subcategory');
+        // Формируем уникальный массив подкатегорий
 
-        const buff = groupBy(data[0], 'date');
-        for (const key in buff) {
-            const obj = {};
-            buff[key].forEach(element => {
-                obj[element.subcategory] = element.count;
-            });
-            obj.date = key;
-            result.data.push(obj);
-        }
+        result.data.forEach(el => {
+            for (const property in el) {
+                if (property !== 'date') {
+                    result.attr.find(model => model === property) ? null : result.attr.push(property);
+                }
+            }
+        });
+
         body = requester.createBody(true, result, null);
 
     }
