@@ -14,11 +14,11 @@ router.route('/')
 
 
 async function getSubcategories(req, res, next) {
-    const product = req.query.product;
+    const products = req.query.product;
     let body;
     try {
         const result = []
-        const data = [] = await db_helper.getSubcategories(product);
+        const data = [] = await db_helper.getSubcategories(products);
         data.forEach(element => {
             result.push(element.subcategory)
         });

@@ -47,11 +47,11 @@ async function getSubcat(req, res, next) {
 
 async function getPos(req, res, next) {
     let body;
-    const product = req.query.product;
+    const products = req.query.product;
     const subcategory = req.query.subcategory;
     try {
         const result = [];
-        const data = [] = await db_helper.getAttrPos(product, subcategory);
+        const data = [] = await db_helper.getAttrPos(products, subcategory);
         data.forEach(element => {
             result.push(element.position);
         });

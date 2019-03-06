@@ -29,8 +29,9 @@ class DbHelper {
     }
 
     async getAttrPos(products, subcategory) {
-        const filterProducts = getFilterProducts(products);
-        const query = `SELECT DISTINCT(position) FROM ${environment.table_calls} ${this.filters.filter_product(product) ? 'WHERE ' + this.filters.filter_product(product) + ' AND' : 'WHERE '}  subcategory='${subcategory}' ORDER BY position`;
+        const filterProducts = products === 'ALL' ? '' : this.getFilterProducts(products);
+        const filterSubcategory = products === 'ALL' ? ` subcategory='${subcategory}'` : `AND subcategory='${subcategory}'`;
+        const query = `SELECT DISTINCT(position) FROM ${environment.table_calls} WHERE  ${filterProducts} ${filterSubcategory}  ORDER BY position`;
         return await this.request(query);
     }
 
@@ -214,10 +215,11 @@ class DbHelper {
 
     }
 
-    getFilterProducts() {
+    getFilterProducts(products) {
         let filterProducts = '';
         products.forEach((pr, index) => {
-            index === 0 ? filterProducts = `product = '${pr}'` : filterProducts += ` OR product = '${pr}'`;
+            index === 0 ? filterProducts = ` ( product = '${pr}'` : filterProducts += ` OR product = '${pr}'`;
+            index === products.length - 1 ? filterProducts += ') ' : null;
         });
         return filterProducts;
     }
