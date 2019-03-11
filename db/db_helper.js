@@ -236,6 +236,22 @@ class DbHelper {
   }
 
   async getPosition(product, subcategory, period, mode, day, callsInDay) {
+
+
+    // const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
+    // const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
+
+    // const query_data =
+    //     `    
+    // SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, position,
+    // ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+    // AND product = '${product}'
+    // AND subcategory = '${subcategory}'
+    // GROUP BY date, position 
+    // ORDER BY date;`;
+
+    const query_positions = `SELECT distinct(position) from ${environment.table_calls} where product = '${product}' AND subcategory = '${subcategory}'`;
+
     console.log('getPosition');
     const filter_mode = mode ? ` MODE = '${mode}'` : ``;
     const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
@@ -283,7 +299,7 @@ class DbHelper {
          FROM (
                  (SELECT *
                   FROM tasks) t_t
-               RIGHT JOIN
+               INNER JOIN
                  (SELECT *
                   FROM period) t_p ON t_t.date = t_p.period)),
            j_products AS

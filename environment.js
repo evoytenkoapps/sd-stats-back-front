@@ -18,7 +18,7 @@ if (currentEnv === 'prod') {
 }
 
 if (currentEnv === 'test') {
-    // dev
+    // test
     environment.host = '192.168.27.59'; //'localhost';
     environment.port = '8882';
     environment.db_host = '192.168.20.129';

@@ -26,7 +26,7 @@ async function getPositions(req, res, next) {
     let body;
     try {
         let result = {};
-        const data = [] = await db_helper.getPosition(product, subcategory, period, mode, day, callscount);
+        const data = await db_helper.getPosition(product, subcategory, period, mode, day, callscount);
         // Делаем группировку по продукту
         result.data = groupby.parse(data, 'position');
         result.attr = uniqFields.parseFields(data);
