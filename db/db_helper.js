@@ -1,7 +1,7 @@
 'use strict'
 var {
-    db,
-    helpers
+  db,
+  helpers
 } = require('./db_connection');
 const environment = require('../environment.js');
 const modes = require('../model/modes');
@@ -12,44 +12,44 @@ const periods = require('../model/periods');
 
 class DbHelper {
 
-    constructor() {
-        this.filters = {
-            filter_product: function (product) {
-                return product === products.ALL ? null : ` product = '${product}'`;
-            },
-            filter_subcategory: function (subcategory) {
-                return subcategory ? ` subcategory='${subcategory}'` : '';
-            }
-        }
+  constructor() {
+    this.filters = {
+      filter_product: function (product) {
+        return product === products.ALL ? null : ` product = '${product}'`;
+      },
+      filter_subcategory: function (subcategory) {
+        return subcategory ? ` subcategory='${subcategory}'` : '';
+      }
     }
+  }
 
-    async getAttrSubcat(product) {
-        const query = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} ${this.filters.filter_product(product) ? 'WHERE ' + this.filters.filter_product(product) : ''}  ORDER BY subcategory`;
-        return await this.request(query);
-    }
+  async getAttrSubcat(product) {
+    const query = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} ${this.filters.filter_product(product) ? 'WHERE ' + this.filters.filter_product(product) : ''}  ORDER BY subcategory`;
+    return await this.request(query);
+  }
 
-    async getAttrPos(products, subcategory) {
-        const filterProducts = products === 'ALL' ? '' : this.getFilterProducts(products);
-        const filterSubcategory = products === 'ALL' ? ` subcategory='${subcategory}'` : `AND subcategory='${subcategory}'`;
-        const query = `SELECT DISTINCT(position) FROM ${environment.table_calls} WHERE  ${filterProducts} ${filterSubcategory}  ORDER BY position`;
-        return await this.request(query);
-    }
+  async getAttrPos(products, subcategory) {
+    const filterProducts = products === 'ALL' ? '' : this.getFilterProducts(products);
+    const filterSubcategory = products === 'ALL' ? ` subcategory='${subcategory}'` : `AND subcategory='${subcategory}'`;
+    const query = `SELECT DISTINCT(position) FROM ${environment.table_calls} WHERE  ${filterProducts} ${filterSubcategory}  ORDER BY position`;
+    return await this.request(query);
+  }
 
-    async getAttrHard() {
-        const query = `SELECT DISTINCT(hardware) FROM ${environment.table_calls} ORDER BY hardware`;
-        return await this.request(query);
-    }
+  async getAttrHard() {
+    const query = `SELECT DISTINCT(hardware) FROM ${environment.table_calls} ORDER BY hardware`;
+    return await this.request(query);
+  }
 
-    async getProduct(product, period, mode, day, callsInDay) {
+  async getProduct(product, period, mode, day, callsInDay) {
 
-        console.log('getProducts');
-        const filter_mode = mode ? ` MODE = '${mode}'` : ``;
-        const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
-        const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
-        const filter_not_now = ` AND time_create::date < now()::date`;
-        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
-        const query_data =
-            `
+    console.log('getProducts');
+    const filter_mode = mode ? ` MODE = '${mode}'` : ``;
+    const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
+    const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
+    const filter_not_now = ` AND time_create::date < now()::date`;
+    const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
+    const query_data =
+      `
        WITH period AS
        (SELECT period,
                COUNT (distinct(date)) AS peroid_days
@@ -124,18 +124,18 @@ class DbHelper {
      ORDER BY DATE;
        `;
 
-        return this.request(query_data);
-    }
+    return this.request(query_data);
+  }
 
-    async getProducts(period, mode, day, callsInDay) {
-        console.log('getProducts');
-        const filter_mode = mode ? ` MODE = '${mode}'` : ``;
-        const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
-        const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
-        const filter_not_now = ` AND time_create::date < now()::date`;
-        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
-        const query =
-            `
+  async getProducts(period, mode, day, callsInDay) {
+    console.log('getProducts');
+    const filter_mode = mode ? ` MODE = '${mode}'` : ``;
+    const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
+    const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
+    const filter_not_now = ` AND time_create::date < now()::date`;
+    const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
+    const query =
+      `
         WITH period AS
         (SELECT period,
                 COUNT (distinct(date)) AS peroid_days
@@ -210,52 +210,40 @@ class DbHelper {
       ORDER BY DATE
         `;
 
-        const result = await this.request(query);
-        return result;
+    const result = await this.request(query);
+    return result;
 
+  }
+
+  getFilterProducts(products) {
+    if (products instanceof Array) {
+      let filterProducts = '';
+      products.forEach((pr, index) => {
+        index === 0 ? filterProducts = ` ( product = '${pr}'` : filterProducts += ` OR product = '${pr}'`;
+        index === products.length - 1 ? filterProducts += ') ' : null;
+      });
+      return filterProducts;
+    } else {
+      return `product = '${products}'`;
     }
+  }
 
-    getFilterProducts(products) {
-        let filterProducts = '';
-        products.forEach((pr, index) => {
-            index === 0 ? filterProducts = ` ( product = '${pr}'` : filterProducts += ` OR product = '${pr}'`;
-            index === products.length - 1 ? filterProducts += ') ' : null;
-        });
-        return filterProducts;
-    }
+  async getSubcategories(products) {
+    const filterProducts = this.getFilterProducts(products);
+    const query = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} WHERE ${filterProducts} ORDER BY subcategory;`
+    const result = await this.request(query);
+    return result;
+  }
 
-    async getSubcategories(products) {
-        const filterProducts = this.getFilterProducts(products);
-        const query = `SELECT DISTINCT(subcategory) FROM ${environment.table_calls} WHERE ${filterProducts} ORDER BY subcategory;`
-        const result = await this.request(query);
-        return result;
-    }
-
-    async getPosition(product, subcategory, period, mode, day, callsInDay) {
-
-
-        // const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
-        // const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
-
-        // const query_data =
-        //     `    
-        // SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, position,
-        // ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        // AND product = '${product}'
-        // AND subcategory = '${subcategory}'
-        // GROUP BY date, position 
-        // ORDER BY date;`;
-
-        const query_positions = `SELECT distinct(position) from ${environment.table_calls} where product = '${product}' AND subcategory = '${subcategory}'`;
-
-        console.log('getPosition');
-        const filter_mode = mode ? ` MODE = '${mode}'` : ``;
-        const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
-        const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
-        const filter_not_now = ` AND time_create::date < now()::date`;
-        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
-        const query_data =
-            `
+  async getPosition(product, subcategory, period, mode, day, callsInDay) {
+    console.log('getPosition');
+    const filter_mode = mode ? ` MODE = '${mode}'` : ``;
+    const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
+    const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
+    const filter_not_now = ` AND time_create::date < now()::date`;
+    const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
+    const query_data =
+      `
         WITH period AS
         (SELECT period,
                 COUNT (distinct(date)) AS peroid_days
@@ -329,23 +317,21 @@ class DbHelper {
          ORDER BY date) t_res
       ORDER BY DATE`;
 
+    return await this.request(query_data);
 
-        const [res1, res2] = await Promise.all([this.request(query_data), this.request(query_positions)]);
-        return [res1, res2];
-
-    }
+  }
 
 
-    async getGrowPosition(product, startDate, endDate) {
+  async getGrowPosition(product, startDate, endDate) {
 
-        if (!Object.values(products).find(el => el === product)) {
-            throw Error('Wrong product :' + product);
-        };
+    if (!Object.values(products).find(el => el === product)) {
+      throw Error('Wrong product :' + product);
+    };
 
-        const filter_product = product === products.ALL ? '' : `AND product = '${product}'`;
+    const filter_product = product === products.ALL ? '' : `AND product = '${product}'`;
 
-        const query =
-            `
+    const query =
+      `
 WITH val AS (
     SELECT  '${startDate}'::DATE startDate, '${endDate}'::DATE endDate
     )
@@ -367,48 +353,48 @@ WITH val AS (
        ${filter_product} 
        GROUP BY position ) t_end ON t_start.position1=t_end.position2  ORDER BY round DESC;
 `
-        return await this.request(query);
-    }
+    return await this.request(query);
+  }
 
-    async getTaskContent(product, mode, startDate, endDate, subcategory, position, hardware) {
-        const filter_hardware = hardware === undefined ? '' : ` AND hardware = '${hardware}'`;
-        const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
-        const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
-        const filter_product = product === products.ALL ? '' : ` AND product = '${product}'`;
-        const query = `SELECT task_id, title,description,decision, subcategory, position, hardware, result FROM ${environment.table_calls} WHERE time_create::date>='${startDate}' AND time_create::date<='${endDate}' AND mode='${mode}' ${filter_product} ${filter_subcat} ${filter_position} ${filter_hardware}`;
-        return await this.request(query);
-    }
+  async getTaskContent(product, mode, startDate, endDate, subcategory, position, hardware) {
+    const filter_hardware = hardware === undefined ? '' : ` AND hardware = '${hardware}'`;
+    const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
+    const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
+    const filter_product = product === products.ALL ? '' : ` AND product = '${product}'`;
+    const query = `SELECT task_id, title,description,decision, subcategory, position, hardware, result FROM ${environment.table_calls} WHERE time_create::date>='${startDate}' AND time_create::date<='${endDate}' AND mode='${mode}' ${filter_product} ${filter_subcat} ${filter_position} ${filter_hardware}`;
+    return await this.request(query);
+  }
 
 
-    /**
-     *
-     *
-     * @param {*} mode
-     * @param {*} day
-     * @param {*} cday
-     * @param {*} subcategory
-     * @param {*} position
-     * @returns
-     * @memberof DbHelper
-     */
-    async getHardwareData(period, mode, day, callsInDay, subcategory, position) {
-        const filter_mode = mode ? ` MODE = '${mode}'` : ``;
-        const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
-        const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
-        const filter_product = ` AND ( product = 'SIP' OR product = 'MTALKER' )`;
-        const filter_working_day1 = day === workingdays.working ? `   WHERE t.date NOT IN (SELECT date FROM holidays)` : '';
-        const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
-        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
-        const show_subcategory = subcategory ? ', subcategory' : '';
-        const show_position = position ? ', position' : '';
-        const show_subcategory_is_null = subcategory ? ` , CASE WHEN subcategory is NULL THEN '${subcategory}' ELSE subcategory END as subcategory` : '';
-        const show_position_is_null = position ? ` , CASE WHEN position is NULL THEN '${position}' ELSE position END as position ` : '';
-        const hardwares = [['ALL', '%%'], ['Yealink_all', '%Yeal%'], ['Panasonic_all', '%Panas%'], ['Grandstream_all', '%Grand%'], ['Gigaset_all', '%Giga%'], ['10. M.TALKER_all', '%M.TALKER%']];
-        let query_hardwares = ``;
+  /**
+   *
+   *
+   * @param {*} mode
+   * @param {*} day
+   * @param {*} cday
+   * @param {*} subcategory
+   * @param {*} position
+   * @returns
+   * @memberof DbHelper
+   */
+  async getHardwareData(period, mode, day, callsInDay, subcategory, position) {
+    const filter_mode = mode ? ` MODE = '${mode}'` : ``;
+    const filter_position = position === undefined ? '' : ` AND position = '${position}'`;
+    const filter_subcat = subcategory === undefined ? '' : ` AND subcategory = '${subcategory}'`;
+    const filter_product = ` AND ( product = 'SIP' OR product = 'MTALKER' )`;
+    const filter_working_day1 = day === workingdays.working ? `   WHERE t.date NOT IN (SELECT date FROM holidays)` : '';
+    const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
+    const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
+    const show_subcategory = subcategory ? ', subcategory' : '';
+    const show_position = position ? ', position' : '';
+    const show_subcategory_is_null = subcategory ? ` , CASE WHEN subcategory is NULL THEN '${subcategory}' ELSE subcategory END as subcategory` : '';
+    const show_position_is_null = position ? ` , CASE WHEN position is NULL THEN '${position}' ELSE position END as position ` : '';
+    const hardwares = [['ALL', '%%'], ['Yealink_all', '%Yeal%'], ['Panasonic_all', '%Panas%'], ['Grandstream_all', '%Grand%'], ['Gigaset_all', '%Giga%'], ['10. M.TALKER_all', '%M.TALKER%']];
+    let query_hardwares = ``;
 
-        hardwares.forEach(el => {
-            const filter_hardware = ` AND hardware like '${el[1]}'`;
-            query_hardwares += `
+    hardwares.forEach(el => {
+      const filter_hardware = ` AND hardware like '${el[1]}'`;
+      query_hardwares += `
         UNION ALL 
 
         ( SELECT date_trunc('${period}', time_create)::date AS date ${show_subcategory} ${show_position} , '${el[0]}' as hardware, count(id)
@@ -417,10 +403,10 @@ WITH val AS (
         GROUP BY date  ${show_subcategory} ${show_position}
         ORDER BY date )
         `;
-        });
+    });
 
-        const query =
-            `
+    const query =
+      `
 WITH period AS
     ( SELECT period,
              COUNT (distinct(date)) AS peroid_days
@@ -461,14 +447,14 @@ FROM (
 
        SELECT date || '' as date, hardware,count FROM  ( SELECT * FROM j_tasks  UNION ALL SELECT * FROM  j_tasks_null ORDER BY date ) t_res
 `;
-        return await this.request(query);
-    }
+    return await this.request(query);
+  }
 
 
-    async request(query, data) {
-        console.log(query);
-        return await db.any(query, data);
-    }
+  async request(query, data) {
+    console.log(query);
+    return await db.any(query, data);
+  }
 
 
 

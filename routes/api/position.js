@@ -8,6 +8,7 @@ const requester = require('../requester');
 
 const router = express.Router();
 const groupby = require('../../helper/groupby');
+const uniqFields = require('../../helper/uniquefields');
 
 router.route('/')
     .get(getPositions);
@@ -27,8 +28,8 @@ async function getPositions(req, res, next) {
         let result = {};
         const data = [] = await db_helper.getPosition(product, subcategory, period, mode, day, callscount);
         // Делаем группировку по продукту
-        result.data = groupby.parse(data[0], 'position');
-        result.attr = data[1];
+        result.data = groupby.parse(data, 'position');
+        result.attr = uniqFields.parseFields(data);
         body = requester.createBody(true, result, null);
     }
     catch (error) {
