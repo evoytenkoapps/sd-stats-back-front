@@ -28,14 +28,15 @@ async function checkId(req, res, next) {
 }
 
 async function getSubcat(req, res, next) {
+    const products = req.query.product;
     let body;
-    const product = req.query.product;
     try {
-        const result = [];
-        const data = [] = await db_helper.getAttrSubcat(product);
+        const result = []
+        const data = [] = await db_helper.getSubcategories(products);
         data.forEach(element => {
-            result.push(element.subcategory);
+            result.push(element.subcategory)
         });
+        // Делаем группировку по продукту
         body = requester.createBody(true, result, null);
     }
     catch (error) {
