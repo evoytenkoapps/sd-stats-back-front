@@ -231,48 +231,106 @@ class DbHelper {
         return result;
     }
 
-    async getPosition(product, subcategory, period, mode, day, cday) {
-        if (!Object.values(products).find(el => el === product)) {
-            throw Error('Wrong product :' + product);
-        }
-
-        if (!Object.values(periods).find(el => el === period)) {
-            throw Error('Wrong period :' + period);
-        }
-
-        if (!Object.values(modes).find(el => el === mode)) {
-            throw Error('Wrong mode :' + mode);
-        };
-
-        if (!Object.values(workingdays).find(el => el === day)) {
-            throw Error('Wrong day :' + day);
-        };
-
-        if (!Object.values(callsday).find(el =>
-            el === cday)) {
-            throw Error('Wrong callsday :' + cday);
-        };
+    async getPosition(product, subcategory, period, mode, day, callsInDay) {
 
 
-        const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
-        const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
+        // const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
+        // const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
-        const query_data =
-            `    
-        SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, position,
-        ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
-        AND product = '${product}'
-        AND subcategory = '${subcategory}'
-        GROUP BY date, position 
-        ORDER BY date;`;
+        // const query_data =
+        //     `    
+        // SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, position,
+        // ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
+        // AND product = '${product}'
+        // AND subcategory = '${subcategory}'
+        // GROUP BY date, position 
+        // ORDER BY date;`;
 
         const query_positions = `SELECT distinct(position) from ${environment.table_calls} where product = '${product}' AND subcategory = '${subcategory}'`;
 
-        const [res1, res2] = await Promise.all([
-            this.request(query_data),
-            this.request(query_positions)
-        ]);
+        console.log('getPosition');
+        const filter_mode = mode ? ` MODE = '${mode}'` : ``;
+        const filter_working_day1 = day === workingdays.working ? `   WHERE date NOT IN (SELECT date FROM holidays)` : '';
+        const filter_working_day2 = day === workingdays.working ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)` : '';
+        const filter_not_now = ` AND time_create::date < now()::date`;
+        const show_calls_in_day = callsInDay === callsday.day ? `round(COUNT::numeric / peroid_days::numeric, 2)` : `count`;
+        const query_data =
+            `
+        WITH period AS
+        (SELECT period,
+                COUNT (distinct(date)) AS peroid_days
+         FROM
+           (SELECT date_trunc('${period}', date)::date AS period , date
+            FROM
+              (SELECT (generate_series('${environment.sql_periods_start_date}', current_date - 1, '1 day'::interval))::date date) t
+             ${filter_working_day1}) t1
+         GROUP BY period),
+           tasks AS
+        ( (SELECT date_trunc('${period}', time_create)::date AS date,
+                         position,
+                         COUNT(id)
+                  FROM sd
+                  WHERE product = '${product}' AND subcategory = '${subcategory}' AND ${filter_mode} ${filter_working_day2} ${filter_not_now}
+                  GROUP BY date, position
+                  ORDER BY date)
+               UNION ALL
+                 (SELECT date_trunc('${period}', time_create)::date AS date,
+                         'ALL',
+                         COUNT(id)
+                  FROM sd
+                  WHERE product = '${product}' AND subcategory = '${subcategory}' AND ${filter_mode} ${filter_working_day2} ${filter_not_now}
+                  GROUP BY date
+                  ORDER BY date) 
+        ),
+           j_tasks AS
+        (SELECT CASE
+                    WHEN date IS NULL THEN period
+                    ELSE date
+                END AS date,
+                position,
+                CASE
+                    WHEN COUNT IS NULL THEN 0
+                    ELSE ${show_calls_in_day}
+                END AS COUNT
+         FROM (
+                 (SELECT *
+                  FROM tasks) t_t
+               RIGHT JOIN
+                 (SELECT *
+                  FROM period) t_p ON t_t.date = t_p.period)),
+           j_products AS
+        (SELECT *
+         FROM (
+                 (SELECT DISTINCT position AS j_products_product
+                  FROM tasks) t_prod
+               CROSS JOIN
+                 (SELECT period AS j_products_period
+                  FROM period) t_p)),
+           j_tasks_null AS
+        (SELECT date, CASE
+                          WHEN position IS NULL THEN j_products_product
+                      END AS position,
+                      COUNT
+         FROM
+           (SELECT *
+            FROM j_tasks
+            WHERE position IS NULL ) t_n
+         LEFT JOIN
+           (SELECT *
+            FROM j_products) t_h ON t_n.date= t_h.j_products_period)
+      SELECT date || '' AS date,
+                       position,
+                       COUNT
+      FROM
+        (SELECT *
+         FROM j_tasks
+         UNION ALL SELECT *
+         FROM j_tasks_null
+         ORDER BY date) t_res
+      ORDER BY DATE`;
 
+
+        const [res1, res2] = await Promise.all([this.request(query_data), this.request(query_positions)]);
         return [res1, res2];
 
     }
