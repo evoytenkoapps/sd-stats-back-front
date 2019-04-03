@@ -563,7 +563,7 @@ FROM (
         : "";
 
     const show_calls_in_day =
-      callsInDay === callsday.day
+        callscount === callsday.day
         ? `round((c_total::numeric/c_day::numeric),2)`
         : `c_total`;
 
