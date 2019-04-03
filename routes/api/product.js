@@ -16,14 +16,14 @@ router.route('/')
 
 async function getProduct(req, res, next) {
     const product = req.query.product;
-    const period = req.query.period;
+    const interval = req.query.interval;
     const mode = req.query.mode;
     const day = req.query.day;
     const callscount = req.query.callscount;
     let body;
     try {
         const result = { data: [], attr: [] };
-        result.data = await db_helper.getProduct(product, period, mode, day, callscount);
+        result.data = await db_helper.getProduct(product, interval, mode, day, callscount);
         // Делаем группировку по продукту
         result.data = groupby.parse(result.data, 'subcategory');
         // Формируем уникальный массив подкатегорий

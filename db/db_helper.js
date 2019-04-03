@@ -50,7 +50,7 @@ class DbHelper {
     return await this.request(query);
   }
 
-  async getProduct(product, period, mode, day, callsInDay) {
+  async getProduct(product, interval, mode, day, callsInDay) {
     console.log("getProducts");
     const filter_mode = mode ? ` MODE = '${mode}'` : ``;
     const filter_working_day1 =

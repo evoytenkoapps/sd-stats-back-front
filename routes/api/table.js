@@ -83,7 +83,7 @@ async function getTaskContent(req, res, next) {
 }
 
 async function getHardwareData(req, res, next) {
-  const period = req.query.period;
+  const interval = req.query.interval;
   const mode = req.query.mode;
   const day = req.query.day;
   const callscount = req.query.callscount;
@@ -93,7 +93,7 @@ async function getHardwareData(req, res, next) {
   let body;
   try {
     let data = ([] = await db_helper.getHardwareData(
-      period,
+      interval,
       mode,
       day,
       callscount,

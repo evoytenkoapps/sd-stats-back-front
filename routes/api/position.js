@@ -19,14 +19,14 @@ router.route('/')
 async function getPositions(req, res, next) {
     const product = req.query.product;
     const subcategory = req.query.subcategory;
-    const period = req.query.period;
+    const interval = req.query.interval;
     const mode = req.query.mode;
     const day = req.query.day;
     const callscount = req.query.callscount;
     let body;
     try {
         let result = {};
-        const data = await db_helper.getPosition(product, subcategory, period, mode, day, callscount);
+        const data = await db_helper.getPosition(product, subcategory, interval, mode, day, callscount);
         // Делаем группировку по продукту
         result.data = groupby.parse(data, 'position');
         result.attr = uniqFields.parseFields(data);
