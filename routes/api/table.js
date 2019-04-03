@@ -122,6 +122,31 @@ async function getHardwareData(req, res, next) {
 
 async function getCreatedTasks(req, res) {
   console.log("getCreatedTasks");
+  const interval = req.query.interval;
+  const day = req.query.day;
+  const callscount = req.query.callscount;
+
+  let body;
+  try {
+    let data = ([] = await db_helper.getCreatedTasks(interval, day, callscount));
+    data = groupby.parse(data, "hardware");
+    const models = [];
+    // Формируем уникальный массив моделей
+    data.forEach(el => {
+      for (const property in el) {
+        if (property !== "date") {
+          models.find(model => model === property)
+            ? null
+            : models.push(property);
+        }
+      }
+    });
+    models.sort();
+    body = requester.createBody(true, { data, models }, null);
+  } catch (error) {
+    body = requester.getDbError(error);
+  }
+  res.json(body);
 }
 
 module.exports = router;
