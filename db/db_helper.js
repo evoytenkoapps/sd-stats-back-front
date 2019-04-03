@@ -82,7 +82,7 @@ class DbHelper {
        ( (SELECT date_trunc('${period}', time_create)::date AS date,
        subcategory,
                         COUNT(id)
-                 FROM sd
+                 FROM ${environment.table_calls}
                  WHERE ${filter_mode}  AND product='${product}'  ${filter_working_day2} ${filter_not_now}
                  GROUP BY date, subcategory
                  ORDER BY date)
@@ -90,7 +90,7 @@ class DbHelper {
                 (SELECT date_trunc('${period}', time_create)::date AS date,
                         'ALL',
                         COUNT(id)
-                 FROM sd
+                 FROM ${environment.table_calls}
                  WHERE ${filter_mode}  AND product='${product}'  ${filter_working_day2} ${filter_not_now}
                  GROUP BY date
                  ORDER BY date) 
@@ -178,7 +178,7 @@ class DbHelper {
         ( (SELECT date_trunc('${period}', time_create)::date AS date,
                          product,
                          COUNT(id)
-                  FROM sd
+                  FROM ${environment.table_calls}
                   WHERE ${filter_mode} ${filter_working_day2} ${filter_not_now}
                   GROUP BY date, product
                   ORDER BY date)
@@ -186,7 +186,7 @@ class DbHelper {
                  (SELECT date_trunc('${period}', time_create)::date AS date,
                          'ALL',
                          COUNT(id)
-                  FROM sd
+                  FROM ${environment.table_calls}
                   WHERE ${filter_mode} ${filter_working_day2} ${filter_not_now}
                   GROUP BY date
                   ORDER BY date) 
@@ -315,7 +315,7 @@ class DbHelper {
         ( (SELECT date_trunc('${period}', time_create)::date AS date,
                          position,
                          COUNT(id)
-                  FROM sd
+                  FROM ${environment.table_calls}
                   WHERE product = '${product}' AND subcategory = '${subcategory}' AND ${filter_mode} ${filter_working_day2} ${filter_not_now}
                   GROUP BY date, position
                   ORDER BY date)
@@ -323,7 +323,7 @@ class DbHelper {
                  (SELECT date_trunc('${period}', time_create)::date AS date,
                          'ALL',
                          COUNT(id)
-                  FROM sd
+                  FROM ${environment.table_calls}
                   WHERE product = '${product}' AND subcategory = '${subcategory}' AND ${filter_mode} ${filter_working_day2} ${filter_not_now}
                   GROUP BY date
                   ORDER BY date) 
@@ -516,7 +516,7 @@ WITH period AS
       ${filter_working_day1} ) t1
      GROUP BY period), 
 tasks as ( ( SELECT date_trunc('${period}', time_create)::date AS date ${show_subcategory} ${show_position} , hardware, count(id)
-FROM sd
+FROM ${environment.table_calls}
 WHERE MODE = '${mode}' ${filter_working_day2} ${filter_product} ${filter_position} ${filter_subcat}
 GROUP BY date  ${show_subcategory} ${show_position} , hardware
 ORDER BY date )
@@ -570,7 +570,7 @@ FROM (
     const query = `
     WITH t_data AS
   (SELECT creator,
-          DATE_TRUNC('${interval}', time_create) AS date,
+          DATE_TRUNC('${interval}', time_create) || '' AS date,
           count(DISTINCT(DATE_TRUNC('day', time_create))) AS c_day,
           count(id) c_total
    FROM ${environment.table_calls}
@@ -580,7 +580,7 @@ FROM (
    GROUP BY creator, date
    ORDER BY creator, date ,c_day, c_total)
    
-SELECT creator, date || '' as date, ${show_calls_in_day} AS COUNT
+SELECT creator, date , ${show_calls_in_day} AS COUNT
 FROM t_data;
     `;
 
