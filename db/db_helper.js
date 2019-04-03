@@ -580,7 +580,7 @@ FROM (
    GROUP BY creator, date
    ORDER BY creator, date ,c_day, c_total)
    
-SELECT creator, date || '' AS date , ${show_calls_in_day} AS COUNT
+SELECT substring( creator from '^\\S+\\s\\S+|^\\S+') as creator, date || '' AS date , ${show_calls_in_day} AS COUNT
 FROM t_data;
     `;
 
