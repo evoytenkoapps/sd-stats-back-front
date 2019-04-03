@@ -570,7 +570,7 @@ FROM (
     const query = `
     WITH t_data AS
   (SELECT creator,
-          DATE_TRUNC('${interval}', time_create) || '' AS date,
+          DATE_TRUNC('${interval}', time_create)::date as date,
           count(DISTINCT(DATE_TRUNC('day', time_create))) AS c_day,
           count(id) c_total
    FROM ${environment.table_calls}
@@ -580,7 +580,7 @@ FROM (
    GROUP BY creator, date
    ORDER BY creator, date ,c_day, c_total)
    
-SELECT creator, date , ${show_calls_in_day} AS COUNT
+SELECT creator, date || '' AS date , ${show_calls_in_day} AS COUNT
 FROM t_data;
     `;
 
