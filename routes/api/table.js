@@ -128,8 +128,8 @@ async function getCreatedTasks(req, res) {
 
   let body;
   try {
-    let data = ([] = await db_helper.getCreatedTasks(interval, day, callscount));
-    data = groupby.parse(data, "hardware");
+    let data = await db_helper.getCreatedTasks(interval, day, callscount);
+    data = groupby.parse(data, "creator");
     const models = [];
     // Формируем уникальный массив моделей
     data.forEach(el => {

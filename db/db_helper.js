@@ -556,22 +556,35 @@ FROM (
    * @param {string} callscount
    * @returns {Promise<void>}
    */
-  async getCreatedTasks(interval, day, callscount) {
+  async getCreatedTasks(interval, callsInDay, callscount) {
+    const filter_working_day =
+        callsInDay === workingdays.working
+        ? `   AND time_create::DATE NOT IN ( SELECT date FROM ${environment.table_holidays}) `
+        : "";
 
-    const filter_working_day1 =
-      day === workingdays.working
-        ? `   WHERE t.date NOT IN (SELECT date FROM holidays)`
-        : "";
-    const filter_working_day2 =
-      day === workingdays.working
-        ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${
-            environment.table_holidays
-          })`
-        : "";
     const show_calls_in_day =
       callsInDay === callsday.day
-        ? `round(COUNT::numeric / peroid_days::numeric, 2)`
-        : `count`;
+        ? `round((c_total::numeric/c_day::numeric),2)`
+        : `c_total`;
+
+    const query = `
+    WITH t_data AS
+  (SELECT creator,
+          DATE_TRUNC('${interval}', time_create) AS date,
+          count(DISTINCT(DATE_TRUNC('day', time_create))) AS c_day,
+          count(id) c_total
+   FROM ${environment.table_calls}
+   WHERE time_create::date>='${environment.sql_periods_start_date}'
+     AND MODE = 'Phone Call'
+     ${filter_working_day}
+   GROUP BY creator, date
+   ORDER BY creator, date ,c_day, c_total)
+   
+SELECT creator, date || '' as date, ${show_calls_in_day} AS COUNT
+FROM t_data;
+    `;
+
+    return await this.request(query);
   }
 
   async request(query, data) {
