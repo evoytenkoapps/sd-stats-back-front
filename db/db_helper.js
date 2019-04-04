@@ -425,7 +425,7 @@ WITH val AS (
     hardware
   ) {
     const filter_hardware =
-      hardware === undefined ? "" : hardware.includes('all') ? `AND hardware like '%${hardware.replace(' all','')}%'` : ` AND hardware = '${hardware}'`;
+      hardware === undefined ? "" : hardware.includes('all') ? `AND hardware like '%${hardware.replace(' all','')}%' AND hardware not like '%АТС%'` : ` AND hardware = '${hardware}'`;
     const filter_position =
       position === undefined ? "" : ` AND position = '${position}'`;
     const filter_subcat =
