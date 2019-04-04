@@ -36,7 +36,7 @@ if (currentEnv === 'test') {
 if (currentEnv === 'dev') {
     // dev
     environment.host = '192.168.27.59'; //'localhost';
-    environment.port = '8882';
+    environment.port = '8881';
     environment.db_host = '192.168.20.129';
     environment.db_port = '5432';
     environment.db_password = 'Qwe12345';
