@@ -51,7 +51,7 @@ class DbHelper {
   }
 
   async getProduct(product, interval, mode, day, callsInDay) {
-    console.log("getProducts");
+    console.log("getProduct");
     const filter_mode = mode ? ` MODE = '${mode}'` : ``;
     const filter_working_day1 =
       day === workingdays.working
@@ -71,7 +71,7 @@ class DbHelper {
        (SELECT period,
                COUNT (distinct(date)) AS peroid_days
         FROM
-          (SELECT date_trunc('${period}', date)::date AS period , date
+          (SELECT date_trunc('${interval}', date)::date AS period , date
            FROM
              (SELECT (generate_series('${
                environment.sql_periods_start_date
@@ -79,7 +79,7 @@ class DbHelper {
             ${filter_working_day1}) t1
         GROUP BY period),
           tasks AS
-       ( (SELECT date_trunc('${period}', time_create)::date AS date,
+       ( (SELECT date_trunc('${interval}', time_create)::date AS date,
        subcategory,
                         COUNT(id)
                  FROM ${environment.table_calls}
@@ -87,7 +87,7 @@ class DbHelper {
                  GROUP BY date, subcategory
                  ORDER BY date)
               UNION ALL
-                (SELECT date_trunc('${period}', time_create)::date AS date,
+                (SELECT date_trunc('${interval}', time_create)::date AS date,
                         'ALL',
                         COUNT(id)
                  FROM ${environment.table_calls}
@@ -146,7 +146,7 @@ class DbHelper {
     return this.request(query_data);
   }
 
-  async getProducts(period, mode, day, callsInDay) {
+  async getProducts(interval, mode, day, callsInDay) {
     console.log("getProducts");
     const filter_mode = mode ? ` MODE = '${mode}'` : ``;
     const filter_working_day1 =
@@ -167,7 +167,7 @@ class DbHelper {
         (SELECT period,
                 COUNT (distinct(date)) AS peroid_days
          FROM
-           (SELECT date_trunc('${period}', date)::date AS period , date
+           (SELECT date_trunc('${interval}', date)::date AS period , date
             FROM
               (SELECT (generate_series('${
                 environment.sql_periods_start_date
@@ -175,7 +175,7 @@ class DbHelper {
              ${filter_working_day1}) t1
          GROUP BY period),
            tasks AS
-        ( (SELECT date_trunc('${period}', time_create)::date AS date,
+        ( (SELECT date_trunc('${interval}', time_create)::date AS date,
                          product,
                          COUNT(id)
                   FROM ${environment.table_calls}
@@ -183,7 +183,7 @@ class DbHelper {
                   GROUP BY date, product
                   ORDER BY date)
                UNION ALL
-                 (SELECT date_trunc('${period}', time_create)::date AS date,
+                 (SELECT date_trunc('${interval}', time_create)::date AS date,
                          'ALL',
                          COUNT(id)
                   FROM ${environment.table_calls}
@@ -267,13 +267,13 @@ class DbHelper {
     return result;
   }
 
-  async getPosition(product, subcategory, period, mode, day, callsInDay) {
+  async getPosition(product, subcategory, interval, mode, day, callsInDay) {
     // const workingFilter = day === workingdays.working ? `AND date_trunc('day', time_create)::timestamp::date NOT IN (SELECT date FROM ${environment.table_holidays})` : '';
     // const callsdayFilter = cday === callsday.day ? `round(COUNT(id)::numeric / count(DISTINCT(date_trunc('day', time_create)::timestamp::date))::numeric,2) as count` : `COUNT(id)`;
 
     // const query_data =
     //     `
-    // SELECT date_trunc('${period}', time_create)::timestamp::date || '' AS date, position,
+    // SELECT date_trunc('${interval}', time_create)::timestamp::date || '' AS date, position,
     // ${callsdayFilter} FROM ${environment.table_calls} WHERE mode = '${mode}' ${workingFilter}
     // AND product = '${product}'
     // AND subcategory = '${subcategory}'
@@ -304,7 +304,7 @@ class DbHelper {
         (SELECT period,
                 COUNT (distinct(date)) AS peroid_days
          FROM
-           (SELECT date_trunc('${period}', date)::date AS period , date
+           (SELECT date_trunc('${interval}', date)::date AS period , date
             FROM
               (SELECT (generate_series('${
                 environment.sql_periods_start_date
@@ -312,7 +312,7 @@ class DbHelper {
              ${filter_working_day1}) t1
          GROUP BY period),
            tasks AS
-        ( (SELECT date_trunc('${period}', time_create)::date AS date,
+        ( (SELECT date_trunc('${interval}', time_create)::date AS date,
                          position,
                          COUNT(id)
                   FROM ${environment.table_calls}
@@ -320,7 +320,7 @@ class DbHelper {
                   GROUP BY date, position
                   ORDER BY date)
                UNION ALL
-                 (SELECT date_trunc('${period}', time_create)::date AS date,
+                 (SELECT date_trunc('${interval}', time_create)::date AS date,
                          'ALL',
                          COUNT(id)
                   FROM ${environment.table_calls}
@@ -449,7 +449,7 @@ WITH val AS (
    * @returns
    * @memberof DbHelper
    */
-  async getHardwareData(period, mode, day, callsInDay, subcategory, position) {
+  async getHardwareData(interval, mode, day, callsInDay, subcategory, position) {
     const filter_mode = mode ? ` MODE = '${mode}'` : ``;
     const filter_position =
       position === undefined ? "" : ` AND position = '${position}'`;
@@ -493,7 +493,7 @@ WITH val AS (
       query_hardwares += `
         UNION ALL 
 
-        ( SELECT date_trunc('${period}', time_create)::date AS date ${show_subcategory} ${show_position} , '${
+        ( SELECT date_trunc('${interval}', time_create)::date AS date ${show_subcategory} ${show_position} , '${
         el[0]
       }' as hardware, count(id)
         FROM ${environment.table_calls}
@@ -508,14 +508,14 @@ WITH period AS
     ( SELECT period,
              COUNT (distinct(date)) AS peroid_days
       FROM
-       (SELECT date_trunc('${period}', date)::date AS period , date
+       (SELECT date_trunc('${interval}', date)::date AS period , date
        FROM
          ( SELECT (generate_series('${
            environment.sql_periods_start_date
          }', now(), '1 day'::interval))::date date) t
       ${filter_working_day1} ) t1
      GROUP BY period), 
-tasks as ( ( SELECT date_trunc('${period}', time_create)::date AS date ${show_subcategory} ${show_position} , hardware, count(id)
+tasks as ( ( SELECT date_trunc('${interval}', time_create)::date AS date ${show_subcategory} ${show_position} , hardware, count(id)
 FROM ${environment.table_calls}
 WHERE MODE = '${mode}' ${filter_working_day2} ${filter_product} ${filter_position} ${filter_subcat}
 GROUP BY date  ${show_subcategory} ${show_position} , hardware
@@ -588,7 +588,7 @@ FROM t_data  ORDER BY DATE ASC;
   }
 
   async request(query, data) {
-    console.log(query);
+    // console.log(query);
     return await db.any(query, data);
   }
 }
