@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "prod": "forever start --id='sd-stats-front' server.js",
-    "test": "set NODE_ENV=test&&forever start --id='sd-stats-front' server.js"
+    "test": "set NODE_ENV=test&&forever start --id=sd-stats-front server.js"
   },
   "author": "evoytenko",
   "license": "ISC",
