@@ -12,5 +12,6 @@ router.use('/product', require('./product'));
 router.use('/position', require('./position'));
 router.use('/table', require('./table'));
 router.use('/attributes', require('./attributes'));
+router.use('/offlineonline', require('./offlineonline'));
 
 module.exports = router;
