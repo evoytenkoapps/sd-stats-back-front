@@ -238,7 +238,7 @@ class DbHelper {
          ORDER BY date) t_res
       ORDER BY DATE
         `;
-
+    console.log(query);
     const result = await this.request(query);
     return result;
   }
@@ -425,7 +425,14 @@ WITH val AS (
     hardware
   ) {
     const filter_hardware =
-      hardware === undefined ? "" : hardware.includes('all') ? `AND hardware like '%${hardware.replace(' all','')}%' AND hardware not like '%АТС%'` : ` AND hardware = '${hardware}'`;
+      hardware === undefined
+        ? ""
+        : hardware.includes("all")
+        ? `AND hardware like '%${hardware.replace(
+            " all",
+            ""
+          )}%' AND hardware not like '%АТС%'`
+        : ` AND hardware = '${hardware}'`;
     const filter_position =
       position === undefined ? "" : ` AND position = '${position}'`;
     const filter_subcat =
@@ -449,7 +456,14 @@ WITH val AS (
    * @returns
    * @memberof DbHelper
    */
-  async getHardwareData(interval, mode, day, callsInDay, subcategory, position) {
+  async getHardwareData(
+    interval,
+    mode,
+    day,
+    callsInDay,
+    subcategory,
+    position
+  ) {
     const filter_mode = mode ? ` MODE = '${mode}'` : ``;
     const filter_position =
       position === undefined ? "" : ` AND position = '${position}'`;
@@ -558,12 +572,14 @@ FROM (
    */
   async getCreatedTasks(interval, callsInDay, callscount) {
     const filter_working_day =
-        callsInDay === workingdays.working
-        ? `   AND time_create::DATE NOT IN ( SELECT date FROM ${environment.table_holidays}) `
+      callsInDay === workingdays.working
+        ? `   AND time_create::DATE NOT IN ( SELECT date FROM ${
+            environment.table_holidays
+          }) `
         : "";
 
     const show_calls_in_day =
-        callscount === callsday.day
+      callscount === callsday.day
         ? `round((c_total::numeric/c_day::numeric),2)`
         : `c_total`;
 
@@ -584,6 +600,83 @@ SELECT substring( creator from '^\\S+\\s\\S+|^\\S+') as creator, date || '' AS d
 FROM t_data  ORDER BY DATE ASC;
     `;
 
+    return await this.request(query);
+  }
+
+  async getOffineOnline(period, day, count) {
+    const filter_working_day1 =
+      day === workingdays.working
+        ? `   WHERE date NOT IN (SELECT date FROM holidays)`
+        : "";
+    const filter_working_day2 =
+      day === workingdays.working
+        ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)`
+        : "";
+    const filter_not_now = ` AND time_create::date < now()::date`;
+    const show_calls_in_day =
+      count === callsday.day
+        ? `round(COUNT::numeric / peroid_days::numeric, 2)`
+        : `count`;
+    const query = `
+        WITH period AS
+        (SELECT period,
+                COUNT (distinct(date)) AS peroid_days
+         FROM
+           (SELECT date_trunc('day', date)::date AS period , date
+            FROM
+              (SELECT (generate_series('2018-10-10', current_date - 1, '1 day'::interval))::date date) t
+                ${filter_working_day1}) t1
+         GROUP BY period),
+           tasks AS
+        ( ( SELECT date_trunc('day', time_create)::date AS date,
+                              'Online' as type,
+                         COUNT(id)
+                  FROM ${environment.table_calls}
+                  WHERE mode='Phone Call' ${filter_working_day2}  ${filter_not_now}
+                  GROUP BY date
+                  ORDER BY date )
+ UNION ALL
+
+                  ( SELECT date_trunc('day', time_create)::date AS date,
+                         'Offline' as type,
+                         COUNT(id)
+                  FROM ${environment.table_calls}
+                  WHERE mode!='Phone Call' ${filter_working_day2}  ${filter_not_now}
+                  GROUP BY date
+                  ORDER BY date ) 
+ UNION ALL
+
+
+               ( SELECT date_trunc('day', time_create)::date AS date,
+                         'All' as type,
+                         COUNT(id)
+                  FROM ${environment.table_calls}
+                  WHERE date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)  ${filter_not_now}
+                  GROUP BY date
+                  ORDER BY date )
+
+        ),
+           j_tasks AS
+        (SELECT CASE
+                    WHEN date IS NULL THEN period || ''
+                    ELSE date || ''
+                END AS date,
+                CASE
+                    WHEN type IS NULL THEN 'All'
+                    ELSE type
+                END AS type,
+                CASE
+                    WHEN COUNT IS NULL THEN 0
+                    ELSE ${show_calls_in_day}
+                END AS COUNT
+         FROM (
+                 (SELECT *
+                  FROM tasks) t_t
+               RIGHT JOIN
+                 (SELECT *
+                  FROM period) t_p ON t_t.date = t_p.period))
+SELECT * from j_tasks                  
+        `;
     return await this.request(query);
   }
 

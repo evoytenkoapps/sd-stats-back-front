@@ -17,6 +17,7 @@ async function getOffline(req, res, next) {
   console.log("getOffline", period, day, count);
   let body;
   try {
+    const data = await db_helper.getOffineOnline();
     body = requester.createBody(true, [], null);
   } catch (error) {
     body = requester.getDbError(error);
