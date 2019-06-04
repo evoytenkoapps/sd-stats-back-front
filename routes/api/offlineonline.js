@@ -16,7 +16,7 @@ async function getOffline(req, res, next) {
   console.log("getOffline", period, day, count);
   let body;
   try {
-    const data = await db_helper.getOffineOnline();
+    const data = await db_helper.getOffineOnline(period, day, count);
     const result = groupBy.parse(data, "type");
     body = requester.createBody(true, result, null);
   } catch (error) {

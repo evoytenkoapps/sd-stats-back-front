@@ -603,6 +603,13 @@ FROM t_data  ORDER BY DATE ASC;
     return await this.request(query);
   }
 
+  /**
+   *
+   * @param {number} period
+   * @param {number} day
+   * @param {number} count
+   * @returns {Promise<*>}
+   */
   async getOffineOnline(period, day, count) {
     const filter_working_day1 =
       day === workingdays.working
@@ -622,13 +629,13 @@ FROM t_data  ORDER BY DATE ASC;
         (SELECT period,
                 COUNT (distinct(date)) AS peroid_days
          FROM
-           (SELECT date_trunc('day', date)::date AS period , date
+           (SELECT date_trunc('${period}', date)::date AS period , date
             FROM
               (SELECT (generate_series('2018-10-10', current_date - 1, '1 day'::interval))::date date) t
                 ${filter_working_day1}) t1
          GROUP BY period),
            tasks AS
-        ( ( SELECT date_trunc('day', time_create)::date AS date,
+        ( ( SELECT date_trunc('${period}', time_create)::date AS date,
                               'Online' as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
@@ -637,7 +644,7 @@ FROM t_data  ORDER BY DATE ASC;
                   ORDER BY date )
  UNION ALL
 
-                  ( SELECT date_trunc('day', time_create)::date AS date,
+                  ( SELECT date_trunc('${period}', time_create)::date AS date,
                          'Offline' as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
@@ -647,11 +654,11 @@ FROM t_data  ORDER BY DATE ASC;
  UNION ALL
 
 
-               ( SELECT date_trunc('day', time_create)::date AS date,
+               ( SELECT date_trunc('${period}', time_create)::date AS date,
                          'All' as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
-                  WHERE date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)  ${filter_not_now}
+                  WHERE true ${filter_working_day2}  ${filter_not_now}
                   GROUP BY date
                   ORDER BY date )
 
