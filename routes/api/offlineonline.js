@@ -1,10 +1,9 @@
 "use strict";
 
 const express = require("express");
-const url = require("url");
-
 const db_helper = require("../../db/db_helper");
 const requester = require("../requester");
+const groupBy = require("../../helper/groupby");
 
 const router = express.Router();
 
@@ -18,7 +17,8 @@ async function getOffline(req, res, next) {
   let body;
   try {
     const data = await db_helper.getOffineOnline();
-    body = requester.createBody(true, [], null);
+    const result = groupBy.parse(data, "type");
+    body = requester.createBody(true, result, null);
   } catch (error) {
     body = requester.getDbError(error);
   }
