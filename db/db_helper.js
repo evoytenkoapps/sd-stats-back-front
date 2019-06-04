@@ -643,15 +643,7 @@ FROM t_data  ORDER BY DATE ASC;
                   WHERE true ${filter_working_day2}  ${filter_not_now}
                   GROUP BY date, mode
                   ORDER BY date )
- UNION ALL
-        
-        ( SELECT date_trunc('${period}', time_create)::date AS date,
-                              'Online' as type,
-                         COUNT(id)
-                  FROM ${environment.table_calls}
-                  WHERE mode='Phone Call' ${filter_working_day2}  ${filter_not_now}
-                  GROUP BY date
-                  ORDER BY date )
+
  UNION ALL
 
                   ( SELECT date_trunc('${period}', time_create)::date AS date,
