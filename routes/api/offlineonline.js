@@ -14,10 +14,11 @@ async function getOffline(req, res, next) {
   const period = req.query.period;
   const day = req.query.day;
   const count = req.query.count;
+  const mass = req.query.mass;
   console.log("getOffline", period, day, count);
   let body;
   try {
-    const data = await db_helper.getOffineOnline(period, day, count);
+    const data = await db_helper.getOffineOnline(period, day, count, mass);
     const attributes = uniqFields.parseFields(data);
     const result = groupBy.parse(data, "type");
     body = requester.createBody(true, { data: result, attr: attributes }, null);

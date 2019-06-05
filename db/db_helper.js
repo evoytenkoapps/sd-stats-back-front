@@ -610,7 +610,7 @@ FROM t_data  ORDER BY DATE ASC;
    * @param {number} count
    * @returns {Promise<*>}
    */
-  async getOffineOnline(period, day, count) {
+  async getOffineOnline(period, day, count, mass) {
     const filter_working_day1 =
       day === workingdays.working
         ? `   WHERE date NOT IN (SELECT date FROM holidays)`
@@ -625,7 +625,8 @@ FROM t_data  ORDER BY DATE ASC;
         ? `round(COUNT::numeric / peroid_days::numeric, 2)`
         : `count`;
 
-    const filterMass = ` AND subcategory not like '%Масс%'`;
+    const filterMass =
+      mass === "no_mass" ? ` AND subcategory not like '%Масс%'` : "";
     const filterNoMode = ` AND mode != 'Не назначен'`;
 
     const query = `
