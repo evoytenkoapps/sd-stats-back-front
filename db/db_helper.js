@@ -613,10 +613,24 @@ FROM t_data  ORDER BY DATE ASC;
   async getOffineOnline(period, day, count, mass) {
     const filter_working_day1 =
       day === workingdays.working
-        ? `   WHERE date NOT IN (SELECT date FROM ${
-            environment.table_holidays
-          })`
-        : "";
+        ? ` date NOT IN (SELECT date FROM ${environment.table_holidays})`
+        : null;
+
+    const filterMassGenerator =
+      mass === "no_mass"
+        ? filter_working_day1
+          ? ` AND ` + ` date NOT IN (SELECT date FROM ${environment.table_mass})`
+          : ` date NOT IN (SELECT date FROM ${environment.table_mass})`
+        : null;
+
+    const generator = filter_working_day1
+      ? filterMassGenerator
+        ? filter_working_day1 + filterMassGenerator
+        : filter_working_day1
+      : filterMassGenerator;
+
+    const filterGenerator = generator ? "WHERE " + generator : "";
+
     const filter_working_day2 =
       day === workingdays.working
         ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM holidays)`
@@ -634,11 +648,6 @@ FROM t_data  ORDER BY DATE ASC;
           }) AND subcategory not like '%Масс%'`
         : "";
 
-    const filterMassGenerator =
-      mass === "no_mass"
-        ? ` AND date NOT IN (SELECT date FROM ${environment.table_mass})`
-        : "";
-
     const filterNoMode = ` AND mode != 'Не назначен'`;
 
     const query = `
@@ -649,7 +658,7 @@ FROM t_data  ORDER BY DATE ASC;
            (SELECT date_trunc('${period}', date)::date AS period , date
             FROM
               (SELECT (generate_series('2018-10-10', current_date - 1, '1 day'::interval))::date date) t
-                ${filter_working_day1} ${filterMassGenerator}) t1
+               ${filterGenerator}) t1
          GROUP BY period),
            tasks AS
         ( 
