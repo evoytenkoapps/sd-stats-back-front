@@ -626,6 +626,7 @@ FROM t_data  ORDER BY DATE ASC;
         : `count`;
 
     const filterMass = ` AND subcategory not like '%Масс%'`;
+    const filterNoMode = ` AND mode != 'Не назначен'`;
 
     const query = `
         WITH period AS
@@ -643,7 +644,7 @@ FROM t_data  ORDER BY DATE ASC;
                               mode as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
-                  WHERE true ${filter_working_day2}  ${filter_not_now} ${filterMass}
+                  WHERE true ${filter_working_day2}  ${filter_not_now} ${filterMass} ${filterNoMode}
                   GROUP BY date, mode
                   ORDER BY date )
 
@@ -653,7 +654,7 @@ FROM t_data  ORDER BY DATE ASC;
                          'Offline' as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
-                  WHERE mode!='Phone Call' ${filter_working_day2}  ${filter_not_now} ${filterMass}
+                  WHERE mode!='Phone Call' ${filter_working_day2}  ${filter_not_now} ${filterMass} ${filterNoMode}
                   GROUP BY date
                   ORDER BY date ) 
  UNION ALL
@@ -663,7 +664,7 @@ FROM t_data  ORDER BY DATE ASC;
                          'All' as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
-                  WHERE true ${filter_working_day2}  ${filter_not_now} ${filterMass}
+                  WHERE true ${filter_working_day2}  ${filter_not_now} ${filterMass} ${filterNoMode}
                   GROUP BY date
                   ORDER BY date )
 
