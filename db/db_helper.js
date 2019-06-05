@@ -626,7 +626,11 @@ FROM t_data  ORDER BY DATE ASC;
         : `count`;
 
     const filterMass =
-      mass === "no_mass" ? ` AND subcategory not like '%Масс%'` : "";
+      mass === "no_mass"
+        ? ` AND date_trunc('day', time_create)::date NOT IN (SELECT date FROM ${
+            environment.table_mass
+          }) AND subcategory not like '%Масс%'`
+        : "";
     const filterNoMode = ` AND mode != 'Не назначен'`;
 
     const query = `
