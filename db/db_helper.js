@@ -624,6 +624,9 @@ FROM t_data  ORDER BY DATE ASC;
       count === callsday.day
         ? `round(COUNT::numeric / peroid_days::numeric, 2)`
         : `count`;
+
+    const filterMass = ` AND subcategory not like '%Масс%'`;
+
     const query = `
         WITH period AS
         (SELECT period,
@@ -640,7 +643,7 @@ FROM t_data  ORDER BY DATE ASC;
                               mode as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
-                  WHERE true ${filter_working_day2}  ${filter_not_now}
+                  WHERE true ${filter_working_day2}  ${filter_not_now} ${filterMass}
                   GROUP BY date, mode
                   ORDER BY date )
 
@@ -650,7 +653,7 @@ FROM t_data  ORDER BY DATE ASC;
                          'Offline' as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
-                  WHERE mode!='Phone Call' ${filter_working_day2}  ${filter_not_now}
+                  WHERE mode!='Phone Call' ${filter_working_day2}  ${filter_not_now} ${filterMass}
                   GROUP BY date
                   ORDER BY date ) 
  UNION ALL
@@ -660,7 +663,7 @@ FROM t_data  ORDER BY DATE ASC;
                          'All' as type,
                          COUNT(id)
                   FROM ${environment.table_calls}
-                  WHERE true ${filter_working_day2}  ${filter_not_now}
+                  WHERE true ${filter_working_day2}  ${filter_not_now} ${filterMass}
                   GROUP BY date
                   ORDER BY date )
 
